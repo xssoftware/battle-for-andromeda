@@ -9,3 +9,8 @@ These two might work in our case so you should check them out and try to start t
 https://github.com/BonsaiDen/NodeGame-Shooter
 
 https://github.com/jfd/wpilot
+
+
+Another good read if you have time is:
+
+http://gameprogrammingpatterns.com/
