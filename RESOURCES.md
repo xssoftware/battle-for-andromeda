@@ -1,0 +1,16 @@
+h1. Resources
+
+1. [Install Ubuntu](http://www.ubuntu.com/download/desktop/install-desktop-latest)
+2. [First Steps with Ubuntu](http://www.makeuseof.com/pages/ubuntu-an-absolute-beginners-guide)
+3. [Ubuntu Manual](https://ubuntu-manual.org/)
+4. [Install git](https://help.ubuntu.com/13.10/serverguide/git.html)
+5. [Compiling from source in Linux](http://www.thegeekstuff.com/2012/06/install-from-source/)
+6. [What is Git?](http://en.wikipedia.org/wiki/Git_(software))
+7. [Practical git guide](http://stackoverflow.com/questions/315911/git-for-beginners-the-definitive-practical-guide)
+8. [Forking projects on github](https://guides.github.com/overviews/forking/)
+9. [The GitHub workflow](https://guides.github.com/overviews/flow/)
+10. [Github Guides](https://guides.github.com/)
+11. [Install node.js](http://askubuntu.com/questions/49390/how-do-i-install-the-latest-version-of-node-js)
+12. [Node.js beginners book](http://www.nodebeginner.org/)
+13. [Node.js free boks](https://github.com/vhf/free-programming-books/blob/master/free-programming-books.md#nodejs)
+14. [Build a simple chat application with node.js](http://martinsikora.com/nodejs-and-websocket-simple-chat-tutorial)
