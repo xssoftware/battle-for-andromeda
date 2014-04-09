@@ -1,4 +1,4 @@
-h1. Resources
+# Resources
 
 1. [Install Ubuntu](http://www.ubuntu.com/download/desktop/install-desktop-latest)
 2. [First Steps with Ubuntu](http://www.makeuseof.com/pages/ubuntu-an-absolute-beginners-guide)
