@@ -10,6 +10,7 @@ var Client = function (server, connection, clientID) {
 	this.player = null;
 
 	this.initiated = false;
+	this.started = false;
 };
 
 Client.prototype.update = function () {
@@ -23,6 +24,10 @@ Client.prototype.handleMessage = function (message) {
 				this.name = message.name;
 				this.player = this.server.addActor(Actor.PlayerActor, {client: this});
 			}
+			break;
+
+		case Message.INPUT:
+			
 			break;
 
 		default:
