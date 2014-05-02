@@ -5,7 +5,7 @@ var Game = function (server, updateRate) {
 	this.updateRate = updateRate;
 	this.runLoop = new Dispatch.RunLoop(updateRate, this.update, this);
 
-	this.fieldSize = {width: 800, height: 600};
+	this.fieldSize = {width: 600, height: 400};
 
 	this.runLoop.start();
 };
