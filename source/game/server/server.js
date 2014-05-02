@@ -121,10 +121,6 @@ Server.prototype.addActor = function (constructor, data) {
 	return actor;
 };
 
-Server.prototype.removeActor = function (actor) {
-	
-}
-
 Server.prototype.updateActors = function () {
 	for (var type in this.actors) {
 		var group = this.actors[type];
@@ -137,6 +133,10 @@ Server.prototype.updateActors = function () {
 				var message = Message.buildActorAddMessage(actor.toMessage());
 				actor.client.sendMessage(message);
 				actor.initiated = true;
+			} else if (actor.updated) {
+				var message = Message.buildActorUpdateMessage(actor.toMessage());
+				actor.client.sendMessage(message);
+				actor.updated = false;
 			}
 		}
 	}
