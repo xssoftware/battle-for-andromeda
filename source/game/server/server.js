@@ -14,6 +14,7 @@ var Server = function (options) {
 	this.lastClientID = 0;
 
 	this.actors = {};
+	this.lastActorID = 0;
 
 	for (var p in Actor.Types) {
 		var type = Actor.Types[p];
@@ -100,7 +101,7 @@ Server.prototype.removeClient = function (clientID) {
 		return;
 	}
 
-	this.clients[clientID] = null;
+	delete this.clients[clientID];
 };
 
 Server.prototype.updateClients = function () {
@@ -111,12 +112,18 @@ Server.prototype.updateClients = function () {
 			client.initiated = true;
 		}
 
+		if (!client.started && client.name) {
+			client.sendMessage(Message.buildGameStartMessage());
+			client.started = true;
+		}
+
 		client.update();
 	}
 };
 
 Server.prototype.addActor = function (constructor, data) {
-	var actor = new constructor(data);
+	var id = ++this.lastActorID;
+	var actor = new constructor(id, data);
 	this.actors[actor.type].push(actor);
 	return actor;
 };
@@ -130,12 +137,10 @@ Server.prototype.updateActors = function () {
 			var actor = group[i];
 
 			if (!actor.initiated) {
-				var message = Message.buildActorAddMessage(actor.toMessage());
-				actor.client.sendMessage(message);
+				actor.client.sendMessage(Message.buildActorAddMessage(actor.toMessage()));
 				actor.initiated = true;
 			} else if (actor.updated) {
-				var message = Message.buildActorUpdateMessage(actor.toMessage());
-				actor.client.sendMessage(message);
+				actor.client.sendMessage(Message.buildActorUpdateMessage(actor.toMessage()));
 				actor.updated = false;
 			}
 		}
