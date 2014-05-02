@@ -8,13 +8,9 @@ ws.onopen = function () {
 };
 
 ws.onmessage = function(msg) {
-	console.log('received');
-	var msg = BISON.decode(msg.data);
-
-	console.log(JSON.stringify(msg));
+	console.log('received: ' + JSON.stringify(BISON.decode(msg.data)));
 };
 
 ws.onerror = ws.onclose = function(e) {
     console.log('closed ' + e);
 };
-
