@@ -19,35 +19,51 @@ var Client = function (server, connection, clientID) {
 }
 
 Client.prototype.update = function () {
+	if (!this.player) {
+		return;
+	}
+
 	var keys = this.keys;
 
 	if (keys) {
-		var offset = 0, rotation = 0;
-
 		if (keys.indexOf('W') != -1) {
-			offset = this.player.movementSpeed;
+			this.player.movementSpeed++;
 		} else if (keys.indexOf('S') != -1) {
-			offset = -this.player.movementSpeed;
+			this.player.movementSpeed--;
+		} else {
+			this.decelerateMovement();
 		}
 
 		if (keys.indexOf('A') != -1) {
-			rotation = -this.player.rotationSpeed;
+			this.player.rotationSpeed--;
 		} else if (keys.indexOf('D') != -1) {
-			rotation = this.player.rotationSpeed;
-		}
-
-		if (offset) {
-			var direction = new Geometry.Vector2(1.0, 0.0).rotate(this.player.rotation);
-			this.player.position.add(direction.multiply(offset));
-			this.player.updated = true;
-		}
-
-		if (rotation) {
-			this.player.rotation += rotation;
-			this.player.updated = true;
+			this.player.rotationSpeed++;
+		} else {
+			this.decelerateRotation();
 		}
 
 		this.keys = null;
+	} else {
+		this.decelerateMovement();
+		this.decelerateRotation();
+	}
+
+	this.player.update();
+}
+
+Client.prototype.decelerateMovement = function () {
+	if (this.player.movementSpeed > 0) {
+		this.player.movementSpeed--;
+	} else if (this.player.movementSpeed < 0) {
+		this.player.movementSpeed++;
+	}
+}
+
+Client.prototype.decelerateRotation = function () {
+	if (this.player.rotationSpeed > 0) {
+		this.player.rotationSpeed--;
+	} else if (this.player.rotationSpeed < 0) {
+		this.player.rotationSpeed++;
 	}
 }
 
