@@ -16,7 +16,7 @@ var Actor = {
 		this.position = new Geometry.Vector2(100.0, 100.0);
 	},
 
-	toMessage: function () {
+	toMessage: function (full) {
 		return null;
 	}
 };
@@ -24,7 +24,8 @@ var Actor = {
 var PlayerActor = function (id, data) {
 	this._init(id, Types.PLAYER, data.client);
 
-	this.velocity = 0;
+	this.movementSpeed = 2;
+	this.rotationSpeed = Geometry.degreesToRadians(2.0);
 	this.rotation = 0;
 
 	this.width = 50.0;
@@ -33,16 +34,25 @@ var PlayerActor = function (id, data) {
 
 PlayerActor.prototype = Object.create(Actor);
 
-PlayerActor.prototype.toMessage = function () {
+PlayerActor.prototype.toMessage = function (full) {
+	if (full) {
+		return {
+			id: this.id,
+			t: this.type,
+			x: this.position.x,
+			y: this.position.y,
+			w: this.width,
+			h: this.height,
+			r: this.rotation
+		};
+	}
+
 	return {
 		id: this.id,
 		t: this.type,
 		x: this.position.x,
 		y: this.position.y,
-		w: this.width,
-		h: this.height,
-		v: this.velocity,
-		r: this.rotation,
+		r: this.rotation
 	};
 };
 
