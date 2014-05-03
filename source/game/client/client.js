@@ -4,6 +4,8 @@ var Client = function () {
 	this.error = false;
 	this.controller = null;
 	this.playing = false;
+
+	this.unprocessedMessages = [];
 }
 
 Client.prototype.connect = function (host, port) {
@@ -83,7 +85,20 @@ Client.prototype.handleDisconnect = function (error) {
 }
 
 Client.prototype.handleMessage = function (message) {
-	console.log('handle ' + JSON.stringify(message));
+	// console.log('handle ' + JSON.stringify(message));
+	this.unprocessedMessages.push(message);
+}
+
+Client.prototype.processMessages = function () {
+	var messages = this.unprocessedMessages;
+	var length = messages.length;
+
+	while (length--) {
+		this.processMessage(messages.shift());
+	}
+}
+
+Client.prototype.processMessage = function (message) {
 	switch (message.type) {
 		case Message.GAME_DATA:
 			this.controller.initializeWithGameData(message.data);
@@ -96,9 +111,17 @@ Client.prototype.handleMessage = function (message) {
 		case Message.ACTOR_ADD:
 			this.controller.addActor(message.data);
 			break;
+
+		case Message.ACTOR_UPDATE:
+			this.controller.updateActor(message.data);
+			break;
 	}
 }
 
 Client.prototype.sendMessage = function (message) {
+	if (!this.connected) {
+		return;
+	}
+
 	this.sock.send(BISON.encode(message));
 }
