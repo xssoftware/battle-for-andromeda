@@ -149,7 +149,7 @@ Server.prototype.addActor = function (constructor, data) {
 	return actor;
 };
 
-Server.prototype.updateActors = function () {
+Server.prototype.visitActors = function () {
 	for (var type in this.actors) {
 		var group = this.actors[type];
 		var length = group.length;
@@ -167,6 +167,10 @@ Server.prototype.updateActors = function () {
 		}
 	}
 };
+
+Server.prototype.getActors = function (type) {
+	return this.actors[type];
+}
 
 Server.prototype.emit = function (message) {
 	this.messagesForBroadcast.push(message);
