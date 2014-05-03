@@ -21,6 +21,8 @@ var Server = function (options) {
 		this.actors[type] = [];
 	}
 
+	this.messagesForBroadcast = [];
+
 	this.game = new Game(this, options.updateRate);
 
 	var self = this;
@@ -56,9 +58,8 @@ var Server = function (options) {
 				console.log('initializing client');
 				var client = self.addClient(connection);
 				connection.clientID = client.id;
-			} else if (connection.clientID && !self.clients[connection.clientID].handleMessage(message)) {
-				console.log('message not conforming to protocol, closing connection');
-				connection.close();
+			} else if (connection.clientID) {
+				self.clients[connection.clientID].handleMessage(message)
 			}
 		});
 
@@ -107,8 +108,30 @@ Server.prototype.removeClient = function (clientID) {
 Server.prototype.updateClients = function () {
 	for (var id in this.clients) {
 		var client = this.clients[id];
+
+		client.processMessages();
+		client.update();
+
 		if (!client.initiated) {
 			client.sendMessage(Message.buildGameDataMessage(this.game.toMessage()));
+
+			for (var type in this.actors) {
+				var group = this.actors[type];
+				var length = group.length;
+
+				// send all actors
+				for (var i = 0; i < length; i++) {
+					var actor = group[i];
+
+					// in the extreme cases where the client sends its name along with the init message
+					// only send this actor if it is not the client's actor as that one will be broadcasted to everyone
+					// on the same iteration
+					if (actor != client.player) {
+						client.sendMessage(Message.buildActorAddMessage(actor.toMessage(true)));
+					}
+				}
+			}
+
 			client.initiated = true;
 		}
 
@@ -116,8 +139,6 @@ Server.prototype.updateClients = function () {
 			client.sendMessage(Message.buildGameStartMessage());
 			client.started = true;
 		}
-
-		client.update();
 	}
 };
 
@@ -137,14 +158,32 @@ Server.prototype.updateActors = function () {
 			var actor = group[i];
 
 			if (!actor.initiated) {
-				actor.client.sendMessage(Message.buildActorAddMessage(actor.toMessage(true)));
+				this.emit(Message.buildActorAddMessage(actor.toMessage(true)));
 				actor.initiated = true;
 			} else if (actor.updated) {
-				actor.client.sendMessage(Message.buildActorUpdateMessage(actor.toMessage(false)));
+				this.emit(Message.buildActorUpdateMessage(actor.toMessage(false)));
 				actor.updated = false;
 			}
 		}
 	}
 };
+
+Server.prototype.emit = function (message) {
+	this.messagesForBroadcast.push(message);
+}
+
+Server.prototype.broadcast = function () {
+	var clients = this.clients;
+	var messages = this.messagesForBroadcast;
+	var ml = messages.length;
+
+	for (var i = 0; i < ml; i++) {
+		var message = BISON.encode(messages.shift());
+
+		for (var cid in clients) {
+			clients[cid].sendMessageRaw(message);
+		}
+	}
+}
 
 module.exports = Server;

@@ -14,6 +14,7 @@ Game.prototype.update = function (context) {
 	var self = context;
 	self.server.updateClients();
 	self.server.updateActors();
+	self.server.broadcast();
 };
 
 Game.prototype.toMessage = function () {
