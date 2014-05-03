@@ -8,6 +8,7 @@
 
 	exports.ACTOR_ADD = 32;
 	exports.ACTOR_UPDATE = 33;
+	exports.ACTOR_DESTROY = 34;
 
 	exports.buildInitMessage = function () {
 		return {type: exports.INIT};
@@ -36,4 +37,8 @@
 	exports.buildActorUpdateMessage = function (data) {
 		return {type: exports.ACTOR_UPDATE, data: data};
 	};
+
+	exports.buildActorDestroyMessage = function (data) {
+		return {type: exports.ACTOR_DESTROY, data: data};
+	}
 })(typeof exports === 'undefined' ? this.Message = {} : exports);
