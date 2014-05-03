@@ -11,14 +11,14 @@ var Actor = {
 		this.updateStep = 1.0 / updateRate;
 	},
 
-	update: function (data) {
+	update: function (data, animate) {
 
 	}
 }
 
 var PlayerActor = function (id, updateRate, entity) {
 	this._init(id, Actor.Types.PLAYER, updateRate, entity);
-	this.entity.backgroundColor = Graphics.Color.Yellow;
+	this.entity.backgroundColor = Graphics.Color.random();
 	this.lastMoveAction = null;
 	this.lastRotateAction = null;
 }
