@@ -2,7 +2,7 @@ var Geometry = require('../../sra/src/util/geometry.js');
 
 var Types = {
 	PLAYER: 1
-};
+}
 
 var Actor = {
 	_init: function (id, type, client) {
@@ -19,7 +19,7 @@ var Actor = {
 	toMessage: function (full) {
 		return null;
 	}
-};
+}
 
 var PlayerActor = function (id, data) {
 	this._init(id, Types.PLAYER, data.client);
@@ -30,7 +30,7 @@ var PlayerActor = function (id, data) {
 
 	this.width = 50.0;
 	this.height = 50.0;
-};
+}
 
 PlayerActor.prototype = Object.create(Actor);
 
@@ -54,7 +54,7 @@ PlayerActor.prototype.toMessage = function (full) {
 		y: this.position.y,
 		r: this.rotation
 	};
-};
+}
 
 exports.Types = Types;
 exports.PlayerActor = PlayerActor;

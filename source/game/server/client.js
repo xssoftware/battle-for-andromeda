@@ -10,6 +10,8 @@ var Client = function (server, connection, clientID) {
 	this.name = null;
 	this.player = null;
 
+	this.unprocessedMessages = [];
+
 	this.initiated = false;
 	this.started = false;
 
@@ -50,6 +52,19 @@ Client.prototype.update = function () {
 }
 
 Client.prototype.handleMessage = function (message) {
+	this.unprocessedMessages.push(message);
+};
+
+Client.prototype.processMessages = function () {
+	var messages = this.unprocessedMessages;
+	var length = messages.length;
+
+	while (length--) {
+		this.processMessage(messages.shift());
+	}
+}
+
+Client.prototype.processMessage = function (message) {
 	switch (message.type) {
 		case Message.NAME:
 			if (!this.name && message.name) {
@@ -65,12 +80,14 @@ Client.prototype.handleMessage = function (message) {
 		default:
 			break;
 	}
-
-	return true;
-};
+}
 
 Client.prototype.sendMessage = function (message) {
 	this.conn.send(BISON.encode(message));
+}
+
+Client.prototype.sendMessageRaw = function (rawMessage) {
+	this.conn.send(rawMessage);
 }
 
 module.exports = Client;
