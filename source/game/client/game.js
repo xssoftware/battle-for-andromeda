@@ -10,11 +10,6 @@ var GameController = function (client, canvas, fps) {
 
 	this.actors = {};
 
-	for (var p in Actor.Types) {
-		var type = Actor.Types[p];
-		this.actors[type] = [];
-	}
-
 	this.eventObserver = new Input.EventObserver();
 	this.eventObserver.startObservingKeyboardEvents();
 
@@ -59,6 +54,8 @@ GameController.prototype.update = function (delta) {
 
 		this.lastUpdateTime = now;
 	}
+
+	this.client.processMessages();
 }
 
 GameController.prototype.getPressedKeys = function () {
@@ -82,10 +79,20 @@ GameController.prototype.getPressedKeys = function () {
 }
 
 GameController.prototype.addActor = function (actorData) {
-	var type = actorData.t;
-	var constructor = Actor.constructorByType[type];
-	var actor = new constructor(actorData.id);
-	actor.update(actorData);
-	this.actors[type].push(actor);
+	var constructor = Actor.constructorByType[actorData.t];
+	var actor = new constructor(actorData.id, this.serverUpdateRate);
+	actor.update(actorData, false);
+	this.actors[actorData.id] = actor;
 	this.renderController.getTopScene().addChild(actor.entity);
+}
+
+GameController.prototype.updateActor = function (actorData) {
+	var actor = this.actors[actorData.id];
+
+	if (!actor) {
+		console.error('!!! internal inconsistency - missing actor with id: ' + actorData.id + ' !!!');
+		return;
+	}
+
+	actor.update(actorData, true);
 }
