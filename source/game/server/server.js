@@ -137,10 +137,10 @@ Server.prototype.updateActors = function () {
 			var actor = group[i];
 
 			if (!actor.initiated) {
-				actor.client.sendMessage(Message.buildActorAddMessage(actor.toMessage()));
+				actor.client.sendMessage(Message.buildActorAddMessage(actor.toMessage(true)));
 				actor.initiated = true;
 			} else if (actor.updated) {
-				actor.client.sendMessage(Message.buildActorUpdateMessage(actor.toMessage()));
+				actor.client.sendMessage(Message.buildActorUpdateMessage(actor.toMessage(false)));
 				actor.updated = false;
 			}
 		}
