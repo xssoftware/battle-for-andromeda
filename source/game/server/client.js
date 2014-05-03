@@ -1,6 +1,7 @@
 var BISON = require('bison');
 var Message = require('../message.js');
 var Actor = require('./actor.js');
+var Geometry = require('../../sra/src/util/geometry.js');
 
 var Client = function (server, connection, clientID) {
 	this.id = clientID;
@@ -11,10 +12,41 @@ var Client = function (server, connection, clientID) {
 
 	this.initiated = false;
 	this.started = false;
-};
+
+	this.keys = null;
+}
 
 Client.prototype.update = function () {
+	var keys = this.keys;
 
+	if (keys) {
+		var offset = 0, rotation = 0;
+
+		if (keys.indexOf('W') != -1) {
+			offset = this.player.movementSpeed;
+		} else if (keys.indexOf('S') != -1) {
+			offset = -this.player.movementSpeed;
+		}
+
+		if (keys.indexOf('A') != -1) {
+			rotation = -this.player.rotationSpeed;
+		} else if (keys.indexOf('D') != -1) {
+			rotation = this.player.rotationSpeed;
+		}
+
+		if (offset) {
+			var direction = new Geometry.Vector2(1.0, 0.0).rotate(this.player.rotation);
+			this.player.position.add(direction.multiply(offset));
+			this.player.updated = true;
+		}
+
+		if (rotation) {
+			this.player.rotation += rotation;
+			this.player.updated = true;
+		}
+
+		this.keys = null;
+	}
 }
 
 Client.prototype.handleMessage = function (message) {
@@ -27,7 +59,7 @@ Client.prototype.handleMessage = function (message) {
 			break;
 
 		case Message.INPUT:
-			
+			this.keys = message.data;
 			break;
 
 		default:
@@ -39,6 +71,6 @@ Client.prototype.handleMessage = function (message) {
 
 Client.prototype.sendMessage = function (message) {
 	this.conn.send(BISON.encode(message));
-};
+}
 
 module.exports = Client;
