@@ -17,7 +17,7 @@ var Client = function (server, connection, clientID) {
 
 	this.keys = null;
 
-	this.respawnTime = 3000; // in miliseconds
+	this.respawnTime = 4000; // in miliseconds
 }
 
 Client.prototype.update = function () {
