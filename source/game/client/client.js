@@ -115,6 +115,10 @@ Client.prototype.processMessage = function (message) {
 		case Message.ACTOR_UPDATE:
 			this.controller.updateActor(message.data);
 			break;
+
+		case Message.ACTOR_DESTROY:
+			this.controller.removeActor(message.data);
+			break;
 	}
 }
 
