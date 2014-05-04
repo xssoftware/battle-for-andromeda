@@ -35,17 +35,17 @@ Client.prototype.update = function () {
 	var keys = this.keys;
 
 	if (keys) {
-		if (keys.indexOf('W') != -1) {
+		if (keys.indexOf('u') != -1) {
 			this.player.movementSpeed++;
-		} else if (keys.indexOf('S') != -1) {
+		} else if (keys.indexOf('d') != -1) {
 			this.player.movementSpeed--;
 		} else {
 			this.decelerateMovement();
 		}
 
-		if (keys.indexOf('A') != -1) {
+		if (keys.indexOf('l') != -1) {
 			this.player.rotationSpeed--;
-		} else if (keys.indexOf('D') != -1) {
+		} else if (keys.indexOf('r') != -1) {
 			this.player.rotationSpeed++;
 		} else {
 			this.decelerateRotation();

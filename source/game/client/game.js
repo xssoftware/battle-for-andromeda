@@ -62,17 +62,17 @@ GameController.prototype.getPressedKeys = function () {
 	var pressed = [];
 	var keys = this.eventObserver.keys;
 
-	if (keys.W) {
-		pressed.push('W');
+	if (keys.up) {
+		pressed.push('u');
 	}
-	if (keys.A) {
-		pressed.push('A');
+	if (keys.left) {
+		pressed.push('l');
 	}
-	if (keys.S) {
-		pressed.push('S');
+	if (keys.down) {
+		pressed.push('d');
 	}
-	if (keys.D) {
-		pressed.push('D');
+	if (keys.right) {
+		pressed.push('r');
 	}
 
 	return pressed;
