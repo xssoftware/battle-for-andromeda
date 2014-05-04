@@ -98,8 +98,14 @@ Server.prototype.addClient = function (connection) {
 }
 
 Server.prototype.removeClient = function (clientID) {
-	if (!this.clients[clientID]) {
+	var client = this.clients[clientID];
+
+	if (!client) {
 		return;
+	}
+
+	if (client.player && client.player.alive) {
+		client.player.destroy();
 	}
 
 	delete this.clients[clientID];
