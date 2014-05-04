@@ -147,7 +147,7 @@ Server.prototype.updateClients = function () {
 
 Server.prototype.addActor = function (constructor, data) {
 	var id = ++this.lastActorID;
-	var actor = new constructor(id, data);
+	var actor = new constructor(id, this.game, data);
 	this.actors[actor.type].push(actor);
 	return actor;
 }

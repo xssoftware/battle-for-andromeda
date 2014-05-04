@@ -99,7 +99,9 @@ Client.prototype.processMessage = function (message) {
 			break;
 
 		case Message.INPUT:
-			this.keys = message.data;
+			if (this.player && this.player.alive) {
+				this.keys = message.data;
+			}
 			break;
 
 		default:
