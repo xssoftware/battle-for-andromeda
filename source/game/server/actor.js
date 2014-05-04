@@ -5,16 +5,16 @@ var Types = {
 }
 
 var Actor = {
-	_init: function (id, type, client) {
+	_init: function (id, type, game) {
 		this.id = id;
 		this.type = type;
-		this.client = client;
+		this.game = game;
 		this.initiated = false;
 		this.updated = false;
 
-		this.position = null;
-		this.width = null;
-		this.height = null;
+		this.position = Geometry.Vector2.Zero.clone();;
+		this.width = 0;
+		this.height = 0;
 		this.polygon = null;
 		this.rotation = 0;
 	},
@@ -24,13 +24,15 @@ var Actor = {
 	}
 }
 
-var PlayerActor = function (id, data) {
-	this._init(id, Types.PLAYER, data.client);
+var PlayerActor = function (id, game, data) {
+	this._init(id, Types.PLAYER, game);
+	this.client = data.client;
 
-	this.position = new Geometry.Vector2(100.0, 100.0);
 	this.width = 40.0;
 	this.height = 40.0;
 	this.polygon = new Geometry.Polygon2(PlayerActor.polygonPoints);
+
+	this.game.positionPlayerOnField(this);
 	this.polygon.transform(this.position.x, this.position.y, this.rotation);
 
 	this.maxMovementSpeed = 1;
