@@ -148,6 +148,14 @@ PlayerActor.prototype.becomeInvincible = function () {
 	this.invincibilityStartTime = Date.now();
 }
 
+PlayerActor.prototype.hit = function (damage) {
+	this.health -= damage;
+
+	if (this.health <= 0) {
+		this.destroy();
+	}
+}
+
 PlayerActor.prototype.destroy = function () {
 	this.alive = false;
 	this.health = 0;
@@ -205,6 +213,7 @@ BulletActor.prototype.toMessage = function (full) {
 
 BulletActor.prototype.update = function () {
 	this.position.addVector(this.step);
+	this.polygon.transform(this.position.x, this.position.y, this.rotation);
 	this.updated = true;
 
 	if (Date.now() - this.spawnTime >= this.timeToLive) {

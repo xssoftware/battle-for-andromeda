@@ -29,11 +29,35 @@ Game.prototype.toMessage = function () {
 }
 
 Game.prototype.updateGame = function () {
-
-	this.checkPlayerPlayerCollision();
+	this.checkPlayerPlayerCollisions();
+	this.checkPlayerBulletCollisions();
 }
 
-Game.prototype.checkPlayerPlayerCollision = function () {
+Game.prototype.checkPlayerBulletCollisions = function () {
+	var playerActors = this.server.getActors(Actor.Types.PLAYER);
+	var bulletActors = this.server.getActors(Actor.Types.BULLET);
+
+	if (!bulletActors.length) {
+		return;
+	}
+
+	for (var i = 0, length = playerActors.length; i < length; i++) {
+		var p = playerActors[i];
+
+		if (!playerIsCollidable(p)) {
+			continue;
+		}
+
+		var b = this.collisionActorForActor(bulletActors, 0, p, bulletIsCollidable);
+
+		if (b) {
+			b.destroy();
+			p.hit(b.damage);
+		}
+	}
+}
+
+Game.prototype.checkPlayerPlayerCollisions = function () {
 	var playerActors = this.server.getActors(Actor.Types.PLAYER);
 
 	for (var i = 0, length = playerActors.length; i < length; i++) {
@@ -43,7 +67,7 @@ Game.prototype.checkPlayerPlayerCollision = function () {
 			continue;
 		}
 
-		var a2 = this.collisionActorForPlayer(playerActors, i + 1, a1, playerIsCollidable);
+		var a2 = this.collisionActorForActor(playerActors, i + 1, a1, playerIsCollidable);
 
 		if (a2) {
 			a1.destroy();
@@ -52,13 +76,13 @@ Game.prototype.checkPlayerPlayerCollision = function () {
 	}
 }
 
-Game.prototype.collisionActorForPlayer = function (actors, index, player, validator) {
-	var polygon = player.polygon;
+Game.prototype.collisionActorForActor = function (actors, index, actor, validate) {
+	var polygon = actor.polygon;
 
 	for (var i = index, l = actors.length; i < l; i++) {
 		var a = actors[i];
 
-		if (validator && !validator(a)) {
+		if (validate && !validate(a, actor)) {
 			continue;
 		}
 
@@ -83,7 +107,7 @@ Game.prototype.positionPlayerOnField = function (player) {
 		y = startY + Math.round(Math.random() * fieldHeight);
 		r = Math.random() * (Math.PI * 2.0);
 		player.polygon.transform(x, y, r);
-	} while (this.collisionActorForPlayer(allPlayers, 0, player, actorIsOverlappable));
+	} while (this.collisionActorForActor(allPlayers, 0, player, actorIsOverlappable));
 
 	player.position.x = x;
 	player.position.y = y;
@@ -93,6 +117,10 @@ Game.prototype.positionPlayerOnField = function (player) {
 // utility
 function playerIsCollidable(player) {
 	return player.alive && !player.invincible;
+}
+
+function bulletIsCollidable(bullet, player) {
+	return bullet.alive && bullet.owner.id != player.id;
 }
 
 function actorIsOverlappable(actor) {
