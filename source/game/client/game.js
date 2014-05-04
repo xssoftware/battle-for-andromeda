@@ -96,3 +96,15 @@ GameController.prototype.updateActor = function (actorData) {
 
 	actor.update(actorData, true);
 }
+
+GameController.prototype.removeActor = function (actorData) {
+	var actor = this.actors[actorData.id];
+
+	if (!actor) {
+		console.error('!!! internal inconsistency - missing actor with id: ' + actorData.id + ' !!!');
+		return;
+	}
+
+	actor.entity.removeFromParent();
+	delete this.actors[actorData.id];
+}
