@@ -74,6 +74,12 @@ GameController.prototype.getPressedKeys = function () {
 	if (keys.right) {
 		pressed.push('r');
 	}
+	if (keys.space) {
+		pressed.push('sp');
+	}
+	if (keys.shift) {
+		pressed.push('sh');
+	}
 
 	return pressed;
 }
