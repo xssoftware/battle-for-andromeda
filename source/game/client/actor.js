@@ -19,13 +19,31 @@ var Actor = {
 var PlayerActor = function (id, updateRate, entity) {
 	this._init(id, Actor.Types.PLAYER, updateRate, entity);
 	this.entity.backgroundColor = Graphics.Color.random();
+
 	this.lastMoveAction = null;
 	this.lastRotateAction = null;
+	this.pulseAction = null;
+
+	this.health = 0;
+	this.invincible = false;
 }
 
 PlayerActor.prototype = Object.create(Actor);
 
 PlayerActor.prototype.update = function (data, animate) {
+	this.health = data.hp;
+	var invincible = data.i;
+
+	if (this.invincible && !invincible) {
+		this.pulseAction.end(true);
+		this.entity.opacity = 1.0;
+	} else if (!this.invincible && invincible) {
+		this.pulseAction = this.createPulseAction();
+		this.entity.addAction(this.pulseAction);
+	}
+
+	this.invincible = invincible;
+
 	if (data.w) {
 		this.entity.rect.size.width = data.w;	
 	}
@@ -62,6 +80,13 @@ PlayerActor.prototype.update = function (data, animate) {
 
 		this.lastRotateAction = rotate;
 	}
+}
+
+PlayerActor.prototype.createPulseAction = function () {
+	var fadeOut = new SRA.FadeToAction(0.5, 0.5, 1.0);
+	var fadeIn = new SRA.FadeToAction(1.0, 0.5, 1.0);
+	var group = new SRA.ActionSequence([fadeOut, fadeIn]);
+	return new SRA.RepeatAction(group, -1);
 }
 
 Actor.constructorByType = {
