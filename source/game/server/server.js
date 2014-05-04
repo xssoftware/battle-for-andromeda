@@ -175,8 +175,8 @@ Server.prototype.emit = function (message) {
 }
 
 Server.prototype.send = function () {
-	this.sendInitialUpdate();
 	this.broadcast();
+	this.sendInitialUpdate();
 }
 
 Server.prototype.sendInitialUpdate = function () {
