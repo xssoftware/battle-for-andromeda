@@ -38,14 +38,14 @@ Game.prototype.checkPlayerPlayerCollision = function () {
 	for (var i = 0, length = playerActors.length; i < length; i++) {
 		var a1 = playerActors[i];
 
-		if (!a1.alive) {
+		if (!a1.alive || a1.invincible) {
 			continue;
 		}
 
 		for (var j = i + 1; j < length; j++) {
 			var a2 = playerActors[j];
 
-			if (!a2.alive) {
+			if (!a2.alive || a2.invincible) {
 				continue;
 			}
 
