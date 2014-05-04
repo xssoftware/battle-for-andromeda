@@ -86,7 +86,7 @@ GameController.prototype.getPressedKeys = function () {
 
 GameController.prototype.addActor = function (actorData) {
 	var constructor = Actor.constructorByType[actorData.t];
-	var actor = new constructor(actorData.id, this.serverUpdateRate);
+	var actor = new constructor(actorData.id, this, this.serverUpdateRate);
 	actor.update(actorData, false);
 	this.actors[actorData.id] = actor;
 	this.renderController.getTopScene().addChild(actor.entity);

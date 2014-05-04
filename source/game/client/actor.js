@@ -4,21 +4,43 @@ var Actor = {
 		BULLET: 2
 	},
 
-	_init: function (id, type, updateRate, entity) {
+	_init: function (id, type, game, updateRate, entity) {
 		this.id = id;
 		this.type = type;
+		this.game = game;
 		this.entity = entity || new SRA.Entity();
 		this.updateRate = updateRate;
 		this.updateStep = 1.0 / updateRate;
 	},
 
 	update: function (data, animate) {
+	},
 
+	moveEntity: function (position) {
+		var oldPosition = this.entity.getPosition();
+		var dx = Math.abs(oldPosition.x - position.x);
+		var dy = Math.abs(oldPosition.y - position.y);
+		var precision = 0.01;
+
+		if (dx > precision || dy > precision) {
+			if (this.lastMoveAction) {
+				this.lastMoveAction.end(true);
+				this.lastMoveAction = null;
+			}
+
+			if (dx > this.game.fieldSize.width || dy > this.game.fieldSize.height) {
+				this.entity.setPosition(position);
+			} else {
+				var move = new SRA.MovePositionToAction(position, this.updateStep, 1.0);
+				this.entity.addAction(move);
+				this.lastMoveAction = move;
+			}
+		}
 	}
 }
 
-var PlayerActor = function (id, updateRate, entity) {
-	this._init(id, Actor.Types.PLAYER, updateRate, entity);
+var PlayerActor = function (id, game, updateRate, entity) {
+	this._init(id, Actor.Types.PLAYER, game, updateRate, entity);
 	this.entity.backgroundColor = Graphics.Color.random();
 
 	this.lastMoveAction = null;
@@ -61,16 +83,7 @@ PlayerActor.prototype.update = function (data, animate) {
 		return;				
 	}
 
-	if (!this.entity.getPosition().equals(position)) {
-		var move = new SRA.MovePositionToAction(position, this.updateStep, 1.0);
-		this.entity.addAction(move);
-
-		if (this.lastMoveAction) {
-			this.lastMoveAction.end(true);
-		}
-
-		this.lastMoveAction = move;
-	}
+	this.moveEntity(position);
 	
 	if (!Geometry.isFloatEqualToFloat(this.entity.rotation, rotation)) {
 		var rotate = new SRA.RotateToAction(rotation, this.updateStep, 1.0);
@@ -91,8 +104,8 @@ PlayerActor.prototype.createPulseAction = function () {
 	return new SRA.RepeatAction(group, -1);
 }
 
-var BulletActor = function (id, updateRate, entity) {
-	this._init(id, Actor.Types.BULLET, updateRate, entity);
+var BulletActor = function (id, game, updateRate, entity) {
+	this._init(id, Actor.Types.BULLET, game, updateRate, entity);
 	this.entity.backgroundColor = Graphics.Color.random();
 
 	this.lastMoveAction = null;
@@ -118,16 +131,7 @@ BulletActor.prototype.update = function (data, animate) {
 		return;
 	}
 
-	if (!this.entity.getPosition().equals(position)) {
-		var move = new SRA.MovePositionToAction(position, this.updateStep, 1.0);
-		this.entity.addAction(move);
-
-		if (this.lastMoveAction) {
-			this.lastMoveAction.end(true);
-		}
-
-		this.lastMoveAction = move;
-	}
+	this.moveEntity(position);
 }
 
 // canvas angle correction
