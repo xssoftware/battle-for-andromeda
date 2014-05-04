@@ -1,6 +1,7 @@
 var Actor = {
 	Types: {
-		PLAYER: 1
+		PLAYER: 1,
+		BULLET: 2
 	},
 
 	_init: function (id, type, updateRate, entity) {
@@ -52,10 +53,11 @@ PlayerActor.prototype.update = function (data, animate) {
 	}
 
 	var position = new Geometry.Vector2(data.x, data.y);
+	var rotation = correctedAngle(data.r);
 
 	if (!animate) {
 		this.entity.setPosition(position);
-		this.entity.rotation = data.r;
+		this.entity.rotation = rotation;
 		return;				
 	}
 
@@ -70,8 +72,8 @@ PlayerActor.prototype.update = function (data, animate) {
 		this.lastMoveAction = move;
 	}
 	
-	if (!Geometry.isFloatEqualToFloat(this.entity.rotation, data.r)) {
-		var rotate = new SRA.RotateToAction(data.r, this.updateStep, 1.0);
+	if (!Geometry.isFloatEqualToFloat(this.entity.rotation, rotation)) {
+		var rotate = new SRA.RotateToAction(rotation, this.updateStep, 1.0);
 		this.entity.addAction(rotate);
 
 		if (this.lastRotateAction) {
@@ -89,6 +91,53 @@ PlayerActor.prototype.createPulseAction = function () {
 	return new SRA.RepeatAction(group, -1);
 }
 
+var BulletActor = function (id, updateRate, entity) {
+	this._init(id, Actor.Types.BULLET, updateRate, entity);
+	this.entity.backgroundColor = Graphics.Color.random();
+
+	this.lastMoveAction = null;
+}
+
+BulletActor.prototype = Object.create(Actor);
+
+BulletActor.prototype.update = function (data, animate) {
+	if (data.w) {
+		this.entity.rect.size.width = data.w;	
+	}
+	if (data.h) {
+		this.entity.rect.size.height = data.h;
+	}
+	if (data.r) {
+		this.entity.rotation = correctedAngle(data.r);
+	}
+
+	var position = new Geometry.Vector2(data.x, data.y);
+
+	if (!animate) {
+		this.entity.setPosition(position);
+		return;
+	}
+
+	if (!this.entity.getPosition().equals(position)) {
+		var move = new SRA.MovePositionToAction(position, this.updateStep, 1.0);
+		this.entity.addAction(move);
+
+		if (this.lastMoveAction) {
+			this.lastMoveAction.end(true);
+		}
+
+		this.lastMoveAction = move;
+	}
+}
+
+// canvas angle correction
+var correction = Math.PI / 2.0;
+
+function correctedAngle(angle) {
+	return angle + correction;
+}
+
 Actor.constructorByType = {
-	1: PlayerActor
+	1: PlayerActor,
+	2: BulletActor
 }
