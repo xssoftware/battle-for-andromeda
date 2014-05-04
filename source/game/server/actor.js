@@ -46,6 +46,12 @@ var PlayerActor = function (id, data) {
 	this.alive = true;
 	this.timeOfDeath = 0;
 	this.health = 1000;
+
+	this.invincibilityStartTime = 0;
+	this.invincibilityDuration = 3000; // in milliseconds
+	this.invincible = false;
+
+	this.becomeInvincible();
 }
 
 PlayerActor.prototype = Object.create(Actor);
@@ -66,7 +72,9 @@ PlayerActor.prototype.toMessage = function (full) {
 			y: this.position.y,
 			w: this.width,
 			h: this.height,
-			r: this.rotation
+			r: this.rotation,
+			hp: this.health,
+			i: this.invincible
 		};
 	}
 
@@ -75,7 +83,9 @@ PlayerActor.prototype.toMessage = function (full) {
 		t: this.type,
 		x: this.position.x,
 		y: this.position.y,
-		r: this.rotation
+		r: this.rotation,
+		hp: this.health,
+		i: this.invincible
 	};
 }
 
@@ -100,24 +110,35 @@ PlayerActor.prototype.update = function () {
 	this.limitRotationSpeed();
 
 	var updated = false;
+	var moved = false;
 
 	if (this.movementSpeed) {
 		var offset = this.movementSpeed * this.movementStep;
 		var direction = new Geometry.Vector2(1.0, 0.0).rotate(this.rotation);
 		this.position.addVector(direction.multiply(offset));
-		updated = true;
+		moved = true;
 	}
 
 	if (this.rotationSpeed) {
 		this.rotation += this.rotationSpeed * this.rotationStep;
+		moved = true;
+	}
+
+	if (this.invincible && Date.now() - this.invincibilityStartTime >= this.invincibilityDuration) {
+		this.invincible = false;
 		updated = true;
 	}
 
-	if (updated) {
+	if (moved) {
 		this.polygon.transform(this.position.x, this.position.y, this.rotation);
 	}
 
-	this.updated = updated;
+	this.updated = updated || moved;
+}
+
+PlayerActor.prototype.becomeInvincible = function () {
+	this.invincible = true;
+	this.invincibilityStartTime = Date.now();
 }
 
 PlayerActor.prototype.destroy = function () {
