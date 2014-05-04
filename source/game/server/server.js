@@ -88,14 +88,14 @@ var Server = function (options) {
 
 Server.prototype.shutDown = function () {
 
-};
+}
 
 Server.prototype.addClient = function (connection) {
 	var id = ++this.lastClientID;
 	var client = new Client(this, connection, id);
 	this.clients[id] = client;
 	return client;
-};
+}
 
 Server.prototype.removeClient = function (clientID) {
 	if (!this.clients[clientID]) {
@@ -103,7 +103,7 @@ Server.prototype.removeClient = function (clientID) {
 	}
 
 	delete this.clients[clientID];
-};
+}
 
 Server.prototype.updateClients = function () {
 	for (var id in this.clients) {
@@ -117,11 +117,14 @@ Server.prototype.updateClients = function () {
 
 			for (var type in this.actors) {
 				var group = this.actors[type];
-				var length = group.length;
 
 				// send all actors
-				for (var i = 0; i < length; i++) {
+				for (var i = 0, length = group.length; i < length; i++) {
 					var actor = group[i];
+
+					if (!actor.alive) {
+						continue;
+					}
 
 					// in the extreme cases where the client sends its name along with the init message
 					// only send this actor if it is not the client's actor as that one will be broadcasted to everyone
@@ -140,14 +143,14 @@ Server.prototype.updateClients = function () {
 			client.started = true;
 		}
 	}
-};
+}
 
 Server.prototype.addActor = function (constructor, data) {
 	var id = ++this.lastActorID;
 	var actor = new constructor(id, data);
 	this.actors[actor.type].push(actor);
 	return actor;
-};
+}
 
 Server.prototype.visitActors = function () {
 	for (var type in this.actors) {
@@ -160,13 +163,17 @@ Server.prototype.visitActors = function () {
 			if (!actor.initiated) {
 				this.emit(Message.buildActorAddMessage(actor.toMessage(true)));
 				actor.initiated = true;
+			} else if (!actor.alive) {
+				this.emit(Message.buildActorDestroyMessage(actor.toMessage(false)));
+				group.splice(i--, 1);
+				length--;
 			} else if (actor.updated) {
 				this.emit(Message.buildActorUpdateMessage(actor.toMessage(false)));
 				actor.updated = false;
 			}
 		}
 	}
-};
+}
 
 Server.prototype.getActors = function (type) {
 	return this.actors[type];
