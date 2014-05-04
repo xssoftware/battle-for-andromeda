@@ -21,6 +21,7 @@ var Server = function (options) {
 		this.actors[type] = [];
 	}
 
+	this.clientsForInitialUpdate = [];
 	this.messagesForBroadcast = [];
 
 	this.game = new Game(this, options.updateRate);
@@ -119,32 +120,8 @@ Server.prototype.updateClients = function () {
 		client.update();
 
 		if (!client.initiated) {
-			client.sendMessage(Message.buildGameDataMessage(this.game.toMessage()));
-
-			for (var type in this.actors) {
-				var group = this.actors[type];
-
-				// send all actors
-				for (var i = 0, length = group.length; i < length; i++) {
-					var actor = group[i];
-
-					if (!actor.alive) {
-						continue;
-					}
-
-					// in the extreme cases where the client sends its name along with the init message
-					// only send this actor if it is not the client's actor as that one will be broadcasted to everyone
-					// on the same iteration
-					if (actor != client.player) {
-						client.sendMessage(Message.buildActorAddMessage(actor.toMessage(true)));
-					}
-				}
-			}
-
-			client.initiated = true;
-		}
-
-		if (!client.started && client.name) {
+			this.clientsForInitialUpdate.push(client);
+		} else if (!client.started && client.name) {
 			client.sendMessage(Message.buildGameStartMessage());
 			client.started = true;
 		}
@@ -158,7 +135,7 @@ Server.prototype.addActor = function (constructor, data) {
 	return actor;
 }
 
-Server.prototype.visitActors = function () {
+Server.prototype.updateActors = function () {
 	for (var type in this.actors) {
 		var group = this.actors[type];
 		var length = group.length;
@@ -169,13 +146,17 @@ Server.prototype.visitActors = function () {
 			if (!actor.initiated) {
 				this.emit(Message.buildActorAddMessage(actor.toMessage(true)));
 				actor.initiated = true;
-			} else if (!actor.alive) {
-				this.emit(Message.buildActorDestroyMessage(actor.toMessage(false)));
-				group.splice(i--, 1);
-				length--;
-			} else if (actor.updated) {
-				this.emit(Message.buildActorUpdateMessage(actor.toMessage(false)));
-				actor.updated = false;
+			} else {
+				actor.update();
+
+				if (!actor.alive) {
+					this.emit(Message.buildActorDestroyMessage(actor.toMessage(false)));
+					group.splice(i--, 1);
+					length--;
+				} else if (actor.updated) {
+					this.emit(Message.buildActorUpdateMessage(actor.toMessage(false)));
+					actor.updated = false;
+				}
 			}
 		}
 	}
@@ -187,6 +168,44 @@ Server.prototype.getActors = function (type) {
 
 Server.prototype.emit = function (message) {
 	this.messagesForBroadcast.push(message);
+}
+
+Server.prototype.send = function () {
+	this.sendInitialUpdate();
+	this.broadcast();
+}
+
+Server.prototype.sendInitialUpdate = function () {
+	var clients = this.clientsForInitialUpdate;
+	var length = clients.length;
+
+	while (length--) {
+		var client = clients.pop();
+
+		client.sendMessage(Message.buildGameDataMessage(this.game.toMessage()));
+
+		for (var type in this.actors) {
+			var group = this.actors[type];
+
+			// send all actors
+			for (var i = 0, l = group.length; i < l; i++) {
+				var actor = group[i];
+
+				if (!actor.alive) {
+					continue;
+				}
+
+				// in the extreme cases where the client sends their name along with the init message
+				// only send this actor if it is not the client's actor as that one will be broadcasted to everyone
+				// on the same iteration
+				if (actor != client.player) {
+					client.sendMessage(Message.buildActorAddMessage(actor.toMessage(true)));
+				}
+			}
+		}
+
+		client.initiated = true;
+	}
 }
 
 Server.prototype.broadcast = function () {

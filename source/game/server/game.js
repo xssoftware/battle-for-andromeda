@@ -16,8 +16,8 @@ Game.prototype.update = function (context) {
 
 	self.updateGame();
 	self.server.updateClients();
-	self.server.visitActors();
-	self.server.broadcast();
+	self.server.updateActors();
+	self.server.send();
 }
 
 Game.prototype.toMessage = function () {
@@ -29,6 +29,7 @@ Game.prototype.toMessage = function () {
 }
 
 Game.prototype.updateGame = function () {
+
 	this.checkPlayerPlayerCollision();
 }
 
@@ -82,7 +83,7 @@ Game.prototype.positionPlayerOnField = function (player) {
 		y = startY + Math.round(Math.random() * fieldHeight);
 		r = Math.random() * (Math.PI * 2.0);
 		player.polygon.transform(x, y, r);
-	} while (this.collisionActorForPlayer(allPlayers, 0, player));
+	} while (this.collisionActorForPlayer(allPlayers, 0, player, actorIsOverlappable));
 
 	player.position.x = x;
 	player.position.y = y;
@@ -92,6 +93,10 @@ Game.prototype.positionPlayerOnField = function (player) {
 // utility
 function playerIsCollidable(player) {
 	return player.alive && !player.invincible;
+}
+
+function actorIsOverlappable(actor) {
+	return !actor.alive;
 }
 
 module.exports = Game;
