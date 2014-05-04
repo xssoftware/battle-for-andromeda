@@ -1,7 +1,8 @@
 var Geometry = require('../../sra/src/util/geometry.js');
 
 var Types = {
-	PLAYER: 1
+	PLAYER: 1,
+	BULLET: 2
 }
 
 var Actor = {
@@ -17,10 +18,16 @@ var Actor = {
 		this.height = 0;
 		this.polygon = null;
 		this.rotation = 0;
+
+		this.alive = true;
 	},
 
 	toMessage: function (full) {
 		return null;
+	},
+
+	update: function () {
+
 	}
 }
 
@@ -29,7 +36,7 @@ var PlayerActor = function (id, game, data) {
 	this.client = data.client;
 
 	this.width = 40.0;
-	this.height = 40.0;
+	this.height = 50.0;
 	this.polygon = new Geometry.Polygon2(PlayerActor.polygonPoints);
 
 	this.game.positionPlayerOnField(this);
@@ -45,7 +52,6 @@ var PlayerActor = function (id, game, data) {
 	this.rotationSpeed = 0;
 	this.rotationStep = Geometry.degreesToRadians(3.0);
 
-	this.alive = true;
 	this.timeOfDeath = 0;
 	this.health = 1000;
 
@@ -59,10 +65,10 @@ var PlayerActor = function (id, game, data) {
 PlayerActor.prototype = Object.create(Actor);
 
 PlayerActor.polygonPoints = [
-	new Geometry.Vector2(-20.0, -20.0),
-	new Geometry.Vector2(20.0, -20.0),
-	new Geometry.Vector2(20.0, 20.0),
-	new Geometry.Vector2(-20.0, 20.0),
+	new Geometry.Vector2(-25.0, -20.0),
+	new Geometry.Vector2(25.0, -20.0),
+	new Geometry.Vector2(25.0, 20.0),
+	new Geometry.Vector2(-25.0, 20.0),
 ];
 
 PlayerActor.prototype.toMessage = function (full) {
@@ -82,7 +88,6 @@ PlayerActor.prototype.toMessage = function (full) {
 
 	return {
 		id: this.id,
-		t: this.type,
 		x: this.position.x,
 		y: this.position.y,
 		r: this.rotation,
@@ -149,5 +154,68 @@ PlayerActor.prototype.destroy = function () {
 	this.timeOfDeath = Date.now();
 }
 
+var BulletActor = function (id, game, data) {
+	this._init(id, Types.BULLET, game);
+
+	this.owner = data.owner;
+
+	this.position.x = this.owner.position.x;
+	this.position.y = this.owner.position.y;
+	this.rotation = this.owner.rotation;
+	this.width = 6;
+	this.height = 10;
+	this.polygon = new Geometry.Polygon2(BulletActor.polygonPoints);
+	this.polygon.transform(this.position.x, this.position.y, this.rotation);
+
+	this.damage = 100;
+	this.speed = 10;
+	this.step = new Geometry.Vector2(1.0, 0.0).rotate(this.rotation).multiply(this.speed);
+	this.spawnTime = Date.now();
+	this.timeToLive = 5000; // in milliseconds
+}
+
+BulletActor.prototype = Object.create(Actor);
+
+BulletActor.polygonPoints = [
+	new Geometry.Vector2(-5.0, -3.0),
+	new Geometry.Vector2(5.0, -3.0),
+	new Geometry.Vector2(5.0, 3.0),
+	new Geometry.Vector2(-5.0, 3.0)
+];
+
+BulletActor.prototype.toMessage = function (full) {
+	if (full) {
+		return {
+			id: this.id,
+			t: this.type,
+			x: this.position.x,
+			y: this.position.y,
+			w: this.width,
+			h: this.height,
+			r: this.rotation
+		};
+	}
+
+	return {
+		id: this.id,
+		x: this.position.x,
+		y: this.position.y
+	};
+}
+
+BulletActor.prototype.update = function () {
+	this.position.addVector(this.step);
+	this.updated = true;
+
+	if (Date.now() - this.spawnTime >= this.timeToLive) {
+		this.destroy();
+	}
+}
+
+BulletActor.prototype.destroy = function () {
+	this.alive = false;
+}
+
 exports.Types = Types;
 exports.PlayerActor = PlayerActor;
+exports.BulletActor = BulletActor;
