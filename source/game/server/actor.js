@@ -123,6 +123,7 @@ PlayerActor.prototype.update = function () {
 		var offset = this.movementSpeed * this.movementStep;
 		var direction = new Geometry.Vector2(1.0, 0.0).rotate(this.rotation);
 		this.position.addVector(direction.multiply(offset));
+		this.game.wrapPosition(this);
 		moved = true;
 	}
 
@@ -179,7 +180,7 @@ var BulletActor = function (id, game, data) {
 	this.speed = 10;
 	this.step = new Geometry.Vector2(1.0, 0.0).rotate(this.rotation).multiply(this.speed);
 	this.spawnTime = Date.now();
-	this.timeToLive = 5000; // in milliseconds
+	this.timeToLive = 2500; // in milliseconds
 }
 
 BulletActor.prototype = Object.create(Actor);
@@ -213,6 +214,7 @@ BulletActor.prototype.toMessage = function (full) {
 
 BulletActor.prototype.update = function () {
 	this.position.addVector(this.step);
+	this.game.wrapPosition(this);
 	this.polygon.transform(this.position.x, this.position.y, this.rotation);
 	this.updated = true;
 
