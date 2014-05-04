@@ -12,7 +12,6 @@ var Client = function (server, connection, clientID) {
 
 	this.unprocessedMessages = [];
 
-	this.initiated = false;
 	this.started = false;
 
 	this.keys = null;

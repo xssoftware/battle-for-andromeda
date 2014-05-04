@@ -10,8 +10,11 @@ var Server = function (options) {
 	this.numberOfClients = 0;
 	this.maxNumberOfClients = 20;
 
+	this.uninitiatedClients = [];
 	this.clients = [];
 	this.lastClientID = 0;
+
+	this.messagesForBroadcast = [];
 
 	this.actors = {};
 	this.lastActorID = 0;
@@ -20,9 +23,6 @@ var Server = function (options) {
 		var type = Actor.Types[p];
 		this.actors[type] = [];
 	}
-
-	this.clientsForInitialUpdate = [];
-	this.messagesForBroadcast = [];
 
 	this.game = new Game(this, options.updateRate);
 
@@ -56,11 +56,14 @@ var Server = function (options) {
 			}
 
 			if (!connection.clientID && message.type === Message.INIT) {
-				console.log('initializing client');
 				var client = self.addClient(connection);
 				connection.clientID = client.id;
 			} else if (connection.clientID) {
-				self.clients[connection.clientID].handleMessage(message)
+				var client = self.clients[connection.clientID];
+
+				if (client.started || message.type === Message.NAME) {
+					client.handleMessage(message);
+				}
 			}
 		});
 
@@ -94,7 +97,7 @@ Server.prototype.shutDown = function () {
 Server.prototype.addClient = function (connection) {
 	var id = ++this.lastClientID;
 	var client = new Client(this, connection, id);
-	this.clients[id] = client;
+	this.uninitiatedClients[id] = client;
 	return client;
 }
 
@@ -102,6 +105,9 @@ Server.prototype.removeClient = function (clientID) {
 	var client = this.clients[clientID];
 
 	if (!client) {
+		if (this.uninitiatedClients[clientID]) {
+			delete this.uninitiatedClients[clientID];
+		}
 		return;
 	}
 
@@ -119,9 +125,7 @@ Server.prototype.updateClients = function () {
 		client.processMessages();
 		client.update();
 
-		if (!client.initiated) {
-			this.clientsForInitialUpdate.push(client);
-		} else if (!client.started && client.name) {
+		if (!client.started && client.name) {
 			client.sendMessage(Message.buildGameStartMessage());
 			client.started = true;
 		}
@@ -176,11 +180,10 @@ Server.prototype.send = function () {
 }
 
 Server.prototype.sendInitialUpdate = function () {
-	var clients = this.clientsForInitialUpdate;
-	var length = clients.length;
+	var clients = this.uninitiatedClients;
 
-	while (length--) {
-		var client = clients.pop();
+	for (var id in clients) {
+		var client = clients[id];
 
 		client.sendMessage(Message.buildGameDataMessage(this.game.toMessage()));
 
@@ -190,21 +193,12 @@ Server.prototype.sendInitialUpdate = function () {
 			// send all actors
 			for (var i = 0, l = group.length; i < l; i++) {
 				var actor = group[i];
-
-				if (!actor.alive) {
-					continue;
-				}
-
-				// in the extreme cases where the client sends their name along with the init message
-				// only send this actor if it is not the client's actor as that one will be broadcasted to everyone
-				// on the same iteration
-				if (actor != client.player) {
-					client.sendMessage(Message.buildActorAddMessage(actor.toMessage(true)));
-				}
+				client.sendMessage(Message.buildActorAddMessage(actor.toMessage(true)));
 			}
 		}
 
-		client.initiated = true;
+		this.clients[id] = client;
+		delete clients[id];
 	}
 }
 
