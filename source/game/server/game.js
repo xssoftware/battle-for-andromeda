@@ -7,6 +7,7 @@ var Game = function (server, updateRate) {
 	this.runLoop = new Dispatch.RunLoop(updateRate, this.update, this);
 
 	this.fieldSize = {width: 600, height: 400};
+	this.wrapAroundThreshold = 20;
 
 	this.runLoop.start();
 }
@@ -92,6 +93,24 @@ Game.prototype.collisionActorForActor = function (actors, index, actor, validate
 	}
 
 	return null;
+}
+
+Game.prototype.wrapPosition = function (actor) {
+	var threshold = this.wrapAroundThreshold;
+	var w = this.fieldSize.width;
+	var h = this.fieldSize.height;
+
+	if (actor.position.x > w + threshold) {
+		actor.position.x -= w + (threshold * 2.0);
+	} else if (actor.position.x < -threshold) {
+		actor.position.x += w + (threshold * 2.0);
+	}
+
+	if (actor.position.y > h + threshold) {
+		actor.position.y -= h + (threshold * 2.0);
+	} else if (actor.position.y < -threshold) {
+		actor.position.y += h + (threshold * 2.0);
+	}
 }
 
 Game.prototype.positionPlayerOnField = function (player) {
