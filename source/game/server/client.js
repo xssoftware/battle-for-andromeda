@@ -16,10 +16,19 @@ var Client = function (server, connection, clientID) {
 	this.started = false;
 
 	this.keys = null;
+
+	this.respawnTime = 3000; // in miliseconds
 }
 
 Client.prototype.update = function () {
 	if (!this.player) {
+		return;
+	}
+
+	if (!this.player.alive) {
+		if (Date.now() - this.player.timeOfDeath >= this.respawnTime) {
+			this.player = this.server.addActor(Actor.PlayerActor, {client: this});
+		}
 		return;
 	}
 
