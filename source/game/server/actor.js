@@ -42,6 +42,10 @@ var PlayerActor = function (id, data) {
 	this.minRotationSpeed = -1;
 	this.rotationSpeed = 0;
 	this.rotationStep = Geometry.degreesToRadians(3.0);
+
+	this.alive = true;
+	this.timeOfDeath = 0;
+	this.health = 1000;
 }
 
 PlayerActor.prototype = Object.create(Actor);
@@ -114,6 +118,12 @@ PlayerActor.prototype.update = function () {
 	}
 
 	this.updated = updated;
+}
+
+PlayerActor.prototype.destroy = function () {
+	this.alive = false;
+	this.health = 0;
+	this.timeOfDeath = Date.now();
 }
 
 exports.Types = Types;
