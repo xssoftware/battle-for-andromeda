@@ -18,6 +18,9 @@ var Client = function (server, connection, clientID) {
 	this.keys = null;
 
 	this.respawnTime = 4000; // in miliseconds
+
+	this.lastBulletShotTime = 0;
+	this.bulletShootCooldownTime = 200; // in milliseconds
 }
 
 Client.prototype.update = function () {
@@ -51,13 +54,20 @@ Client.prototype.update = function () {
 			this.decelerateRotation();
 		}
 
+		if (keys.indexOf('sp') != -1) {
+			var now = Date.now();
+
+			if (now - this.lastBulletShotTime >= this.bulletShootCooldownTime) {
+				this.lastBulletShotTime = now;
+				this.server.addActor(Actor.BulletActor, {owner: this.player});
+			}
+		}
+
 		this.keys = null;
 	} else {
 		this.decelerateMovement();
 		this.decelerateRotation();
 	}
-
-	this.player.update();
 }
 
 Client.prototype.decelerateMovement = function () {
