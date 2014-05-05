@@ -73,6 +73,14 @@ function start() {
 
 window.onload = function () {
 	document.imageCache = new Graphics.Image.Cache();
-	var imagePaths = ['res/ship.png'];
+
+	var base = 'res/';
+	var imageNames = ['ship.png', 'space_tl.jpg', 'space_tr.jpg', 'space_bl.jpg', 'space_br.jpg'];
+	var imagePaths = [];
+
+	for (var i = 0, l = imageNames.length; i < l; i++) {
+		imagePaths.push(base + imageNames[i]);
+	}
+
 	new Graphics.Image.Loader(imagePaths, document.imageCache, start).start();
 }
