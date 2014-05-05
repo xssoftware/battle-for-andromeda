@@ -18,12 +18,36 @@ var GameController = function (client, canvas, fps) {
 	this.renderController.setFrameRate(fps);
 	this.renderController.scheduleUpdate(this, this.update);
 
-	var mainScene = new SRA.Scene();
-	mainScene.backgroundColor = "rgb(150, 150, 150)";
-	mainScene.rect.size = this.renderController.canvas.getSize();
+	var mainScene = this.createMainScene();
 	this.renderController.pushScene(mainScene);
 
+	var bg = this.createBackgroundEntity(new Geometry.Rect(Geometry.Vector2.Zero.clone(), this.renderController.canvas.getSize()));
+	mainScene.addChild(bg);
+
 	this.renderController.run();
+}
+
+GameController.prototype.createMainScene = function () {
+	var mainScene = new SRA.Scene();
+	mainScene.rect.size = this.renderController.canvas.getSize();
+	return mainScene;
+}
+
+GameController.prototype.createBackgroundEntity = function (rect) {
+	var cache = document.imageCache;
+	var images = [
+		[cache.imageForKey('res/space_tl.jpg'), cache.imageForKey('res/space_tr.jpg')],
+		[cache.imageForKey('res/space_bl.jpg'), cache.imageForKey('res/space_br.jpg')]
+	];
+
+	var bg = new SRA.TileEntity(images);
+	bg.setContentOffset(new Geometry.Vector2(Math.round(Math.random() * 1024), Math.round(Math.random() * 1024)));
+	bg.rect = rect;
+	this.renderController.scheduleUpdate(bg, function (delta) {
+		bg.setContentOffset(bg.getContentOffset().add(-15.0 * delta, -8.0 * delta));
+	});
+
+	return bg;
 }
 
 GameController.prototype.initializeWithGameData = function (data) {
