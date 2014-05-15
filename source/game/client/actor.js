@@ -110,7 +110,8 @@ PlayerActor.prototype.createPulseAction = function () {
 
 var BulletActor = function (id, game, updateRate, entity) {
 	this._init(id, Actor.Types.BULLET, game, updateRate, entity);
-	this.entity.backgroundColor = Graphics.Color.random();
+	this.entity.backgroundColor = Graphics.Color.Clear;
+	this.entity.sprite = document.imageCache.imageForKey('res/beam.png');
 
 	this.lastMoveAction = null;
 }
