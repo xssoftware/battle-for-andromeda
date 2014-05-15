@@ -8,7 +8,7 @@ var Actor = require('./actor.js');
 var Server = function (options) {
 	this.port = options.port || 4242;
 	this.numberOfClients = 0;
-	this.maxNumberOfClients = 20;
+	this.maxNumberOfClients = 5;
 
 	this.uninitiatedClients = [];
 	this.clients = [];
@@ -105,16 +105,14 @@ Server.prototype.removeClient = function (clientID) {
 	var client = this.clients[clientID];
 
 	if (!client) {
-		if (this.uninitiatedClients[clientID]) {
+		if ((client = this.uninitiatedClients[clientID])) {
+			client.disconnect();
 			delete this.uninitiatedClients[clientID];
 		}
 		return;
 	}
 
-	if (client.player && client.player.alive) {
-		client.player.destroy();
-	}
-
+	client.disconnect();
 	delete this.clients[clientID];
 }
 
