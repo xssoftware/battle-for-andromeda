@@ -44,19 +44,19 @@ Client.prototype.update = function () {
 
 	if (keys) {
 		if (keys.indexOf('u') != -1) {
-			this.player.movementSpeed++;
+			this.player.thrust = 1;
 		} else if (keys.indexOf('d') != -1) {
-			this.player.movementSpeed--;
+			this.player.thrust = -1;
 		} else {
-			this.decelerateMovement();
+			this.player.thrust = 0;
 		}
 
 		if (keys.indexOf('l') != -1) {
-			this.player.rotationSpeed--;
+			this.player.torque = -1;
 		} else if (keys.indexOf('r') != -1) {
-			this.player.rotationSpeed++;
+			this.player.torque = 1;
 		} else {
-			this.decelerateRotation();
+			this.player.torque = 0;
 		}
 
 		if (keys.indexOf('sp') != -1) {
@@ -70,24 +70,8 @@ Client.prototype.update = function () {
 
 		this.keys = null;
 	} else {
-		this.decelerateMovement();
-		this.decelerateRotation();
-	}
-}
-
-Client.prototype.decelerateMovement = function () {
-	if (this.player.movementSpeed > 0) {
-		this.player.movementSpeed--;
-	} else if (this.player.movementSpeed < 0) {
-		this.player.movementSpeed++;
-	}
-}
-
-Client.prototype.decelerateRotation = function () {
-	if (this.player.rotationSpeed > 0) {
-		this.player.rotationSpeed--;
-	} else if (this.player.rotationSpeed < 0) {
-		this.player.rotationSpeed++;
+		this.player.thrust = 0;
+		this.player.torque = 0;
 	}
 }
 

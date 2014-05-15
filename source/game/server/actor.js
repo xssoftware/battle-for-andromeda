@@ -43,15 +43,15 @@ var PlayerActor = function (id, game, data) {
 	this.game.positionPlayerOnField(this);
 	this.polygon.transform(this.position.x, this.position.y, this.rotation);
 
-	this.maxMovementSpeed = 1;
-	this.minMovementSpeed = -1;
-	this.movementSpeed = 0;
-	this.movementStep = 4.0;
+	this.movementSpeed = 5.0;
+	this.rotationSpeed = Geometry.degreesToRadians(4.0);
 
-	this.maxRotationSpeed = 1;
-	this.minRotationSpeed = -1;
-	this.rotationSpeed = 0;
-	this.rotationStep = Geometry.degreesToRadians(5.0);
+	this.thrust = 0;
+	this.torque = 0;
+	this.velocity = Geometry.Vector2.Zero.clone();
+	this.desiredVelocity = Geometry.Vector2.Zero.clone();
+	this.steering = Geometry.Vector2.Zero.clone();
+	this.mass = 30;
 
 	this.timeOfDeath = 0;
 	this.health = 1000;
@@ -100,45 +100,29 @@ PlayerActor.prototype.toMessage = function (full) {
 	};
 }
 
-PlayerActor.prototype.limitMovementSpeed = function () {
-	if (this.movementSpeed > this.maxMovementSpeed) {
-		this.movementSpeed = this.maxMovementSpeed;
-	} else if (this.movementSpeed < this.minMovementSpeed) {
-		this.movementSpeed = this.minMovementSpeed;
-	}
-}
-
-PlayerActor.prototype.limitRotationSpeed = function () {
-	if (this.rotationSpeed > this.maxRotationSpeed) {
-		this.rotationSpeed = this.maxRotationSpeed;
-	} else if (this.rotationSpeed < this.minRotationSpeed) {
-		this.rotationSpeed = this.minRotationSpeed;
-	}
-}
-
 PlayerActor.prototype.update = function () {
-	this.limitMovementSpeed();
-	this.limitRotationSpeed();
-
 	var updated = false;
 	var moved = false;
 
-	if (this.movementSpeed) {
-		var offset = this.movementSpeed * this.movementStep;
-		var direction = new Geometry.Vector2(1.0, 0.0).rotate(this.rotation);
-		this.position.addVector(direction.multiply(offset));
+	this.desiredVelocity = new Geometry.Vector2(1.0, 0.0).rotate(this.rotation).multiply(this.movementSpeed * this.thrust);
+
+	if (!this.desiredVelocity.equals(Geometry.Vector2.Zero) || !this.velocity.equals(Geometry.Vector2.Zero)) {
+		this.steering = this.desiredVelocity.minus(this.velocity);
+		this.steering.multiply(1.0 / this.mass);
+		this.velocity.addVector(this.steering);
+		this.position.addVector(this.velocity);
 		this.game.wrapPosition(this);
 		moved = true;
 	}
 
-	if (this.rotationSpeed) {
-		var speed = this.rotationSpeed;
+	if (this.torque) {
+		var rotation = this.rotationSpeed * this.torque;
 
-		if (this.movementSpeed < 0) {
-			speed *= -1;
+		if (this.thrust < 0) {
+			rotation *= -1;
 		}
 
-		this.rotation += speed * this.rotationStep;
+		this.rotation += rotation;
 		moved = true;
 	}
 
