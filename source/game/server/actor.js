@@ -51,7 +51,7 @@ var PlayerActor = function (id, game, data) {
 	this.maxRotationSpeed = 1;
 	this.minRotationSpeed = -1;
 	this.rotationSpeed = 0;
-	this.rotationStep = Geometry.degreesToRadians(3.0);
+	this.rotationStep = Geometry.degreesToRadians(5.0);
 
 	this.timeOfDeath = 0;
 	this.health = 1000;
@@ -132,7 +132,13 @@ PlayerActor.prototype.update = function () {
 	}
 
 	if (this.rotationSpeed) {
-		this.rotation += this.rotationSpeed * this.rotationStep;
+		var speed = this.rotationSpeed;
+
+		if (this.movementSpeed < 0) {
+			speed *= -1;
+		}
+
+		this.rotation += speed * this.rotationStep;
 		moved = true;
 	}
 
@@ -175,7 +181,7 @@ var BulletActor = function (id, game, data) {
 	this.position.x = this.owner.position.x;
 	this.position.y = this.owner.position.y;
 	this.rotation = this.owner.rotation;
-	this.width = 6;
+	this.width = 10;
 	this.height = 10;
 	this.polygon = new Geometry.Polygon2(BulletActor.polygonPoints);
 	this.polygon.transform(this.position.x, this.position.y, this.rotation);
@@ -190,10 +196,10 @@ var BulletActor = function (id, game, data) {
 BulletActor.prototype = Object.create(Actor);
 
 BulletActor.polygonPoints = [
-	new Geometry.Vector2(-5.0, -3.0),
-	new Geometry.Vector2(5.0, -3.0),
-	new Geometry.Vector2(5.0, 3.0),
-	new Geometry.Vector2(-5.0, 3.0)
+	new Geometry.Vector2(-8.0, -8.0),
+	new Geometry.Vector2(8.0, -8.0),
+	new Geometry.Vector2(8.0, 8.0),
+	new Geometry.Vector2(-8.0, 8.0)
 ];
 
 BulletActor.prototype.toMessage = function (full) {
