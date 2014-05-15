@@ -75,7 +75,11 @@ window.onload = function () {
 	document.imageCache = new Graphics.Image.Cache();
 
 	var base = 'res/';
-	var imageNames = ['ship.png', 'space_tl.jpg', 'space_tr.jpg', 'space_bl.jpg', 'space_br.jpg'];
+	var imageNames = [
+		'space_tl.jpg', 'space_tr.jpg', 'space_bl.jpg', 'space_br.jpg', 
+		'ship_blue.png', 'ship_green.png', 'ship_purple.png', 'ship_red.png', 'ship_white.png', 'ship_yellow.png'
+	];
+	
 	var imagePaths = [];
 
 	for (var i = 0, l = imageNames.length; i < l; i++) {
