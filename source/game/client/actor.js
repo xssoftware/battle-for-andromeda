@@ -113,6 +113,44 @@ PlayerActor.prototype.createPulseAction = function () {
 	return new SRA.RepeatAction(group, -1);
 }
 
+PlayerActor.prototype.destroy = function () {
+	var ship = this.entity;
+
+	var profile = new SRA.Entity();
+	profile.rect = new Geometry.Rect(Geometry.Vector2.Zero.clone(), ship.rect.size.clone());
+	profile.backgroundColor = ship.backgroundColor;
+	profile.sprite = document.imageCache.imageForKey('res/ship_white.png');
+	profile.opacity = 0.0;
+	ship.addChild(profile);
+
+	var fadeIn = new SRA.FadeToAction(1.0, 0.3, 1.0);
+	fadeIn.onComplete = function () {
+		ship.sprite = null;
+
+		var fadeOut = new SRA.FadeToAction(0.0, 0.1, 1.0);
+		fadeOut.onComplete = function () {
+			ship.removeFromParent();
+		}
+
+		ship.addAction(fadeOut);
+	}
+
+	profile.addAction(fadeIn);
+
+	var x = Math.random() * 4.0;
+	var y = 4.0 - x;
+
+	if (Math.round(Math.random())) {
+		x = -x;
+	}
+	if (Math.round(Math.random())) {
+		y = -y;
+	}
+
+	var move = new SRA.MoveByAction(new Geometry.Vector2(x, y), 0.4, 1.0);
+	ship.addAction(move);
+}
+
 var BulletActor = function (id, game, updateRate, entity) {
 	this._init(id, Actor.Types.BULLET, game, updateRate, entity);
 	this.entity.backgroundColor = Graphics.Color.Clear;
