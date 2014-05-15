@@ -41,7 +41,7 @@ var Actor = {
 
 var PlayerActor = function (id, game, updateRate, entity) {
 	this._init(id, Actor.Types.PLAYER, game, updateRate, entity);
-	this.entity.backgroundColor = Graphics.Color.random();
+	this.entity.backgroundColor = Graphics.Color.Clear;
 
 	this.lastMoveAction = null;
 	this.lastRotateAction = null;
@@ -72,6 +72,10 @@ PlayerActor.prototype.update = function (data, animate) {
 	}
 	if (data.h) {
 		this.entity.rect.size.height = data.h;
+	}
+
+	if (data.c) {
+		this.entity.sprite = document.imageCache.imageForKey('res/ship_' + data.c + '.png');
 	}
 
 	var position = new Geometry.Vector2(data.x, data.y);
