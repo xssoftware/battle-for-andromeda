@@ -135,6 +135,6 @@ GameController.prototype.removeActor = function (actorData) {
 		return;
 	}
 
-	actor.entity.removeFromParent();
+	actor.destroy();
 	delete this.actors[actorData.id];
 }
