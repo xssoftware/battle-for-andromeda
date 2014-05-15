@@ -124,18 +124,15 @@ PlayerActor.prototype.destroy = function () {
 	ship.addChild(profile);
 
 	var fadeIn = new SRA.FadeToAction(1.0, 0.3, 1.0);
-	fadeIn.onComplete = function () {
+	var hide = new SRA.InvocationAction(function () {
 		ship.sprite = null;
+	});
+	var fadeOut = new SRA.FadeToAction(0.0, 0.1, 1.0);
+	var remove = new SRA.InvocationAction(function () {
+		ship.removeFromParent();
+	});
 
-		var fadeOut = new SRA.FadeToAction(0.0, 0.1, 1.0);
-		fadeOut.onComplete = function () {
-			ship.removeFromParent();
-		}
-
-		ship.addAction(fadeOut);
-	}
-
-	profile.addAction(fadeIn);
+	profile.addAction(new SRA.ActionSequence([fadeIn, hide, fadeOut, remove]));
 
 	var x = Math.random() * 4.0;
 	var y = 4.0 - x;
@@ -195,11 +192,11 @@ BulletActor.prototype.destroy = function () {
 	entity.rotation = Math.random() * (Math.PI * 2.0);
 
 	var animate = new SRA.SpriteAction(explosionImages, 0.5, 1.0);
-	animate.onComplete = function () {
+	var remove = new SRA.InvocationAction(function () {
 		entity.removeFromParent();
-	}
+	});
 
-	entity.addAction(animate);
+	entity.addAction(new SRA.ActionSequence([animate, remove]));
 }
 
 BulletActor.getExplosionImages = function () {
