@@ -66,12 +66,12 @@ var PlayerActor = function (id, game, data) {
 PlayerActor.prototype = Object.create(Actor);
 
 PlayerActor.polygonPoints = [
-	new Geometry.Vector2(-11.5, -22.0),
+	new Geometry.Vector2(-10.5, -20.0),
 	new Geometry.Vector2(-9.5, -22.0),
-	new Geometry.Vector2(11.5, -3.0),
-	new Geometry.Vector2(11.5, 3.0),
+	new Geometry.Vector2(9.5, -3.0),
+	new Geometry.Vector2(9.5, 3.0),
 	new Geometry.Vector2(-9.5, 22.0),
-	new Geometry.Vector2(-11.5, 22.0)
+	new Geometry.Vector2(-10.5, 20.0)
 ];
 
 PlayerActor.prototype.toMessage = function (full) {
