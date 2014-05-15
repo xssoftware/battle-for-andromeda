@@ -14,6 +14,11 @@ var Actor = {
 	},
 
 	update: function (data, animate) {
+
+	},
+
+	destroy: function () {
+
 	},
 
 	moveEntity: function (position) {
@@ -137,6 +142,40 @@ BulletActor.prototype.update = function (data, animate) {
 	}
 
 	this.moveEntity(position);
+}
+
+BulletActor.prototype.destroy = function () {
+	var entity = this.entity;
+	var explosionImages = BulletActor.getExplosionImages();
+	var firstImage = explosionImages[0];
+	var position = entity.getPosition();
+
+	entity.sprite = firstImage;
+	entity.rect.size.width = firstImage.width;
+	entity.rect.size.height = firstImage.height;
+	entity.setPosition(position);
+	entity.rotation = Math.random() * (Math.PI * 2.0);
+
+	var animate = new SRA.SpriteAction(explosionImages, 0.5, 1.0);
+	animate.onComplete = function () {
+		entity.removeFromParent();
+	}
+
+	entity.addAction(animate);
+}
+
+BulletActor.getExplosionImages = function () {
+	if (!this._animationImages) {
+		var c = document.imageCache;
+		this._animationImages = [
+			c.imageForKey('res/expl1.png'), c.imageForKey('res/expl2.png'), c.imageForKey('res/expl3.png'), 
+			c.imageForKey('res/expl4.png'), c.imageForKey('res/expl5.png'), c.imageForKey('res/expl6.png'),
+			c.imageForKey('res/expl7.png'), c.imageForKey('res/expl8.png'), c.imageForKey('res/expl9.png'), 
+			c.imageForKey('res/expl10.png'), c.imageForKey('res/expl11.png'), c.imageForKey('res/expl12.png')
+		];
+	}
+
+	return this._animationImages;
 }
 
 // canvas angle correction
