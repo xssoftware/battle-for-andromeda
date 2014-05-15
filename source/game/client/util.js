@@ -78,7 +78,9 @@ window.onload = function () {
 	var imageNames = [
 		'space_tl.jpg', 'space_tr.jpg', 'space_bl.jpg', 'space_br.jpg', 
 		'ship_blue.png', 'ship_green.png', 'ship_purple.png', 'ship_red.png', 'ship_white.png', 'ship_yellow.png',
-		'beam.png'
+		'beam.png',
+		'expl1.png', 'expl2.png', 'expl3.png', 'expl4.png', 'expl5.png', 'expl6.png', 
+		'expl7.png', 'expl8.png', 'expl9.png', 'expl10.png', 'expl11.png', 'expl12.png'
 	];
 
 	var imagePaths = [];
