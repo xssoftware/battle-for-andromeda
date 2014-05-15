@@ -3,12 +3,18 @@ var Message = require('../message.js');
 var Actor = require('./actor.js');
 var Geometry = require('../../sra/src/util/geometry.js');
 
+var AvailableColors = ['red', 'blue', 'green', 'purple', 'yellow'];
+
 var Client = function (server, connection, clientID) {
 	this.id = clientID;
 	this.server = server;
 	this.conn = connection;
 	this.name = null;
 	this.player = null;
+
+	var colorIndex = Math.round(Math.random() * (AvailableColors.length - 1));
+	this.color = AvailableColors[colorIndex];
+	AvailableColors.splice(colorIndex, 1);
 
 	this.unprocessedMessages = [];
 
@@ -29,7 +35,7 @@ Client.prototype.update = function () {
 
 	if (!this.player.alive) {
 		if (Date.now() - this.player.timeOfDeath >= this.respawnTime) {
-			this.player = this.server.addActor(Actor.PlayerActor, {client: this});
+			this.player = this.server.addActor(Actor.PlayerActor, {client: this, color: this.color});
 		}
 		return;
 	}
@@ -103,7 +109,7 @@ Client.prototype.processMessage = function (message) {
 		case Message.NAME:
 			if (!this.name && message.name) {
 				this.name = message.name;
-				this.player = this.server.addActor(Actor.PlayerActor, {client: this});
+				this.player = this.server.addActor(Actor.PlayerActor, {client: this, color: this.color});
 			}
 			break;
 
@@ -124,6 +130,14 @@ Client.prototype.sendMessage = function (message) {
 
 Client.prototype.sendMessageRaw = function (rawMessage) {
 	this.conn.send(rawMessage);
+}
+
+Client.prototype.disconnect = function () {
+	if (this.player && this.player.alive) {
+		this.player.destroy();
+	}
+
+	AvailableColors.push(this.color);
 }
 
 module.exports = Client;
