@@ -34,9 +34,10 @@ var Actor = {
 var PlayerActor = function (id, game, data) {
 	this._init(id, Types.PLAYER, game);
 	this.client = data.client;
+	this.color = data.color;
 
-	this.width = 40.0;
-	this.height = 50.0;
+	this.width = 44.0;
+	this.height = 23.0;
 	this.polygon = new Geometry.Polygon2(PlayerActor.polygonPoints);
 
 	this.game.positionPlayerOnField(this);
@@ -65,10 +66,12 @@ var PlayerActor = function (id, game, data) {
 PlayerActor.prototype = Object.create(Actor);
 
 PlayerActor.polygonPoints = [
-	new Geometry.Vector2(-25.0, -20.0),
-	new Geometry.Vector2(25.0, -20.0),
-	new Geometry.Vector2(25.0, 20.0),
-	new Geometry.Vector2(-25.0, 20.0),
+	new Geometry.Vector2(-11.5, -22.0),
+	new Geometry.Vector2(-9.5, -22.0),
+	new Geometry.Vector2(11.5, -3.0),
+	new Geometry.Vector2(11.5, 3.0),
+	new Geometry.Vector2(-9.5, 22.0),
+	new Geometry.Vector2(-11.5, 22.0)
 ];
 
 PlayerActor.prototype.toMessage = function (full) {
@@ -76,6 +79,7 @@ PlayerActor.prototype.toMessage = function (full) {
 		return {
 			id: this.id,
 			t: this.type,
+			c: this.color,
 			x: this.position.x,
 			y: this.position.y,
 			w: this.width,
