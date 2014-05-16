@@ -117,6 +117,7 @@ Client.prototype.processMessage = function (message) {
 			break;
 
 		case Message.ACTOR_DESTROY:
+			this.controller.updateActor(message.data);
 			this.controller.removeActor(message.data);
 			break;
 	}
