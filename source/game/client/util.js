@@ -80,7 +80,9 @@ window.onload = function () {
 		'ship_blue.png', 'ship_green.png', 'ship_purple.png', 'ship_red.png', 'ship_white.png', 'ship_yellow.png',
 		'beam.png',
 		'expl1.png', 'expl2.png', 'expl3.png', 'expl4.png', 'expl5.png', 'expl6.png', 
-		'expl7.png', 'expl8.png', 'expl9.png', 'expl10.png', 'expl11.png', 'expl12.png'
+		'expl7.png', 'expl8.png', 'expl9.png', 'expl10.png', 'expl11.png', 'expl12.png',
+		'asteroid_0_green.png', 'asteroid_0_white.png', 'asteroid_0_gray.png', 'asteroid_0_orange.png', 'asteroid_0_red.png',
+		'asteroid_1_green.png', 'asteroid_1_white.png', 'asteroid_1_gray.png', 'asteroid_1_orange.png', 'asteroid_1_red.png'
 	];
 
 	var imagePaths = [];
