@@ -2,6 +2,7 @@ var BISON = require('bison');
 var Message = require('../message.js');
 var Actor = require('./actor.js');
 var Geometry = require('../../sra/src/util/geometry.js');
+var WebSocket = require('ws');
 
 var AvailableColors = ['red', 'blue', 'green', 'purple', 'yellow'];
 
@@ -109,11 +110,15 @@ Client.prototype.processMessage = function (message) {
 }
 
 Client.prototype.sendMessage = function (message) {
-	this.conn.send(BISON.encode(message));
+	if (this.conn.readyState == WebSocket.OPEN) {
+		this.conn.send(BISON.encode(message));
+	}
 }
 
 Client.prototype.sendMessageRaw = function (rawMessage) {
-	this.conn.send(rawMessage);
+	if (this.conn.readyState == WebSocket.OPEN) {
+		this.conn.send(rawMessage);
+	}
 }
 
 Client.prototype.disconnect = function () {
