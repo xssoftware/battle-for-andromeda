@@ -1,7 +1,8 @@
 var Actor = {
 	Types: {
 		PLAYER: 1,
-		BULLET: 2
+		BULLET: 2,
+		ASTEROID: 3
 	},
 
 	_init: function (id, type, game, updateRate, entity) {
@@ -13,12 +14,16 @@ var Actor = {
 		this.updateStep = 1.0 / updateRate;
 	},
 
+	initiate: function (data) {
+
+	},
+
 	update: function (data, animate) {
 
 	},
 
 	destroy: function () {
-
+		this.entity.removeFromParent();
 	},
 
 	moveEntity: function (position) {
@@ -58,6 +63,15 @@ var PlayerActor = function (id, game, updateRate, entity) {
 
 PlayerActor.prototype = Object.create(Actor);
 
+PlayerActor.prototype.initiate = function (data) {
+	this.entity.rect.size.width = data.w;
+	this.entity.rect.size.height = data.h;
+
+	this.entity.sprite = document.imageCache.imageForKey('res/ship_' + data.c + '.png');
+
+	this.update(data, false);
+}
+
 PlayerActor.prototype.update = function (data, animate) {
 	this.health = data.hp;
 	var invincible = data.i;
@@ -71,17 +85,6 @@ PlayerActor.prototype.update = function (data, animate) {
 	}
 
 	this.invincible = invincible;
-
-	if (data.w) {
-		this.entity.rect.size.width = data.w;	
-	}
-	if (data.h) {
-		this.entity.rect.size.height = data.h;
-	}
-
-	if (data.c) {
-		this.entity.sprite = document.imageCache.imageForKey('res/ship_' + data.c + '.png');
-	}
 
 	var position = new Geometry.Vector2(data.x, data.y);
 	var rotation = correctedAngle(data.r);
@@ -158,17 +161,15 @@ var BulletActor = function (id, game, updateRate, entity) {
 
 BulletActor.prototype = Object.create(Actor);
 
-BulletActor.prototype.update = function (data, animate) {
-	if (data.w) {
-		this.entity.rect.size.width = data.w;	
-	}
-	if (data.h) {
-		this.entity.rect.size.height = data.h;
-	}
-	if (data.r) {
-		this.entity.rotation = correctedAngle(data.r);
-	}
+BulletActor.prototype.initiate = function (data) {
+	this.entity.rect.size.width = data.w;
+	this.entity.rect.size.height = data.h;
+	this.entity.rotation = correctedAngle(data.r);
 
+	this.update(data, false);
+}
+
+BulletActor.prototype.update = function (data, animate) {
 	var position = new Geometry.Vector2(data.x, data.y);
 
 	if (!animate) {
@@ -213,6 +214,76 @@ BulletActor.getExplosionImages = function () {
 	return this._animationImages;
 }
 
+var AsteroidActor = function (id, game, updateRate, entity) {
+	this._init(id, Actor.Types.ASTEROID, game, updateRate, entity);
+	this.entity.backgroundColor = null;
+}
+
+AsteroidActor.prototype = Object.create(Actor);
+
+AsteroidActor.prototype.initiate = function (data) {
+	this.entity.rect.size.width = data.w;
+	this.entity.rect.size.height = data.h;
+
+	this.subtype = data.st;
+	this.entity.sprite = document.imageCache.imageForKey('res/asteroid_' + data.st + '_' + data.c + '.png');
+
+	var profile = new SRA.Entity();
+	profile.rect.origin = Geometry.Vector2.Zero.clone();
+	profile.rect.size = this.entity.rect.size;
+	profile.backgroundColor = null;
+	profile.sprite = document.imageCache.imageForKey('res/asteroid_' + data.st + '_white.png');
+	this.entity.addChild(profile);
+
+	var fadeOut = new SRA.FadeToAction(0.0, 0.2);
+	var remove = new SRA.InvocationAction(function () {
+		this.removeFromParent();
+	});
+
+	profile.addAction(new SRA.ActionSequence([fadeOut, remove]));
+
+	this.update(data, false);
+}
+
+AsteroidActor.prototype.update = function (data, animate) {
+	this.entity.rotation = correctedAngle(data.r);
+
+	var position = new Geometry.Vector2(data.x, data.y);
+
+	if (!animate) {
+		this.entity.setPosition(position);
+		return;
+	}
+
+	this.moveEntity(position);
+}
+
+AsteroidActor.prototype.destroy = function () {
+	var entity = this.entity;
+
+	var profile = new SRA.Entity();
+	profile.rect.origin = Geometry.Vector2.Zero.clone();
+	profile.rect.size = entity.rect.size;
+	profile.backgroundColor = null;
+	profile.sprite = document.imageCache.imageForKey('res/asteroid_' + this.subtype + '_white.png');
+	profile.opacity = 0.0;
+	entity.addChild(profile);
+
+	var fadeIn = new SRA.FadeToAction(1.0, 0.1);
+	var clear = new SRA.InvocationAction(function () {
+		entity.sprite = null;
+	});
+	var fadeOut = new SRA.FadeToAction(0.0, 0.1);
+	var remove = new SRA.InvocationAction(function () {
+		entity.removeFromParent();
+	});
+	var scale = new SRA.ScaleToAction(new Geometry.Vector2(1.1, 1.1), 0.2);
+	scale.setTimingFunction(SRA.TimingFunction.EaseInOut);
+
+	profile.addAction(new SRA.ActionSequence([fadeIn, clear, fadeOut, remove]));
+	entity.addAction(scale);
+}
+
 // canvas angle correction
 var correction = Math.PI / 2.0;
 
@@ -222,5 +293,6 @@ function correctedAngle(angle) {
 
 Actor.constructorByType = {
 	1: PlayerActor,
-	2: BulletActor
+	2: BulletActor,
+	3: AsteroidActor
 }
