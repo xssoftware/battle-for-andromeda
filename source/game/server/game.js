@@ -1,11 +1,29 @@
 var Dispatch = require('../../sra/src/util/dispatch.js');
 var Actor = require('./actor.js');
 var Geometry = require('../../sra/src/util/geometry.js');
+var Client = require('./client.js');
+var Message = require('../message.js');
+var BISON = require('bison');
 
-var Game = function (server, updateRate) {
-	this.server = server;
+var Game = function (id, updateRate) {
+	this.id = id;
 	this.updateRate = updateRate;
 	this.runLoop = new Dispatch.RunLoop(updateRate, this.update, this);
+
+	this.uninitiatedClients = {};
+	this.clients = {};
+	this.numberOfClients = 0;
+	this.maxNumberOfClients = 2;
+
+	this.messagesForBroadcast = [];
+
+	this.actors = {};
+	this.lastActorID = 0;
+
+	for (var p in Actor.Types) {
+		var type = Actor.Types[p];
+		this.actors[type] = [];
+	}
 
 	this.fieldSize = {width: 600, height: 400};
 	this.wrapAroundThreshold = 20;
@@ -17,13 +35,142 @@ var Game = function (server, updateRate) {
 	this.runLoop.start();
 }
 
+Game.prototype.canAcceptClients = function () {
+	return this.numberOfClients < this.maxNumberOfClients;
+}
+
+Game.prototype.addClient = function (id, connection) {
+	this.numberOfClients++;
+
+	var client = new Client(this, connection, id);
+	this.uninitiatedClients[id] = client;
+	return client;
+}
+
+Game.prototype.removeClient = function (clientID) {
+	var client = this.clients[clientID];
+
+	if (client) {
+		delete this.clients[clientID];
+	} else if ((client = this.uninitiatedClients[clientID])) {
+		delete this.uninitiatedClients[clientID];
+	}
+
+	if (client) {
+		client.disconnect();
+		this.numberOfClients--;
+	}
+}
+
+Game.prototype.updateClients = function () {
+	for (var id in this.clients) {
+		var client = this.clients[id];
+
+		client.processMessages();
+		client.update();
+
+		if (!client.started && client.name) {
+			client.sendMessage(Message.buildGameStartMessage());
+			client.started = true;
+		}
+	}
+}
+
+Game.prototype.addActor = function (constructor, data) {
+	var id = ++this.lastActorID;
+	var actor = new constructor(id, this, data);
+	this.actors[actor.type].push(actor);
+	return actor;
+}
+
+Game.prototype.updateActors = function () {
+	for (var type in this.actors) {
+		var group = this.actors[type];
+		var length = group.length;
+
+		for (var i = 0; i < length; i++) {
+			var actor = group[i];
+
+			if (!actor.initiated) {
+				this.emit(Message.buildActorAddMessage(actor.toMessage(true)));
+				actor.initiated = true;
+			} else {
+				actor.update();
+
+				if (!actor.alive) {
+					this.emit(Message.buildActorDestroyMessage(actor.toMessage(false)));
+					group.splice(i--, 1);
+					length--;
+				} else if (actor.updated) {
+					this.emit(Message.buildActorUpdateMessage(actor.toMessage(false)));
+					actor.updated = false;
+				}
+			}
+		}
+	}
+}
+
+Game.prototype.getActors = function (type) {
+	return this.actors[type];
+}
+
+Game.prototype.emit = function (message) {
+	this.messagesForBroadcast.push(message);
+}
+
+Game.prototype.send = function () {
+	this.broadcast();
+	this.sendInitialUpdate();
+}
+
+Game.prototype.sendInitialUpdate = function () {
+	var clients = this.uninitiatedClients;
+
+	for (var id in clients) {
+		var client = clients[id];
+
+		client.sendMessage(Message.buildGameDataMessage(this.toMessage()));
+
+		for (var type in this.actors) {
+			var group = this.actors[type];
+
+			// send all actors
+			for (var i = 0, l = group.length; i < l; i++) {
+				var actor = group[i];
+				client.sendMessage(Message.buildActorAddMessage(actor.toMessage(true)));
+			}
+		}
+
+		this.clients[id] = client;
+		delete clients[id];
+	}
+}
+
+Game.prototype.broadcast = function () {
+	var clients = this.clients;
+	var messages = this.messagesForBroadcast;
+	var ml = messages.length;
+
+	for (var i = 0; i < ml; i++) {
+		var message = BISON.encode(messages.shift());
+
+		for (var cid in clients) {
+			clients[cid].sendMessageRaw(message);
+		}
+	}
+}
+
+Game.prototype.stop = function () {
+	this.runLoop.stop();
+}
+
 Game.prototype.update = function (context) {
 	var self = context;
 
 	self.updateGame();
-	self.server.updateClients();
-	self.server.updateActors();
-	self.server.send();
+	self.updateClients();
+	self.updateActors();
+	self.send();
 }
 
 Game.prototype.toMessage = function () {
@@ -44,7 +191,7 @@ Game.prototype.updateGame = function () {
 }
 
 Game.prototype.updateAsteroids = function () {
-	var asteroids = this.server.getActors(Actor.Types.ASTEROID);
+	var asteroids = this.getActors(Actor.Types.ASTEROID);
 	var now = Date.now();
 
 	for (var i = 0, l = asteroids.length; i < l; i++) {
@@ -62,7 +209,7 @@ Game.prototype.updateAsteroids = function () {
 		var direction = new Geometry.Vector2(1.0, 0.0).rotate(r1);
 		var offset = direction.times(diagonal / 4.0);
 
-		this.server.addActor(Actor.AsteroidActor, {
+		this.addActor(Actor.AsteroidActor, {
 			subtype: asteroid.subtype - 1, 
 			color: asteroid.color, 
 			rotation: r1,
@@ -71,7 +218,7 @@ Game.prototype.updateAsteroids = function () {
 			direction: direction
 		});
 
-		this.server.addActor(Actor.AsteroidActor, {
+		this.addActor(Actor.AsteroidActor, {
 			subtype: asteroid.subtype - 1, 
 			color: asteroid.color, 
 			rotation: r2,
@@ -83,17 +230,17 @@ Game.prototype.updateAsteroids = function () {
 		this.lastAsteroidSpawnTime = now;
 	}
 
-	asteroids = this.server.getActors(Actor.Types.ASTEROID);
+	asteroids = this.getActors(Actor.Types.ASTEROID);
 
-	if (asteroids.length <= this.maxAsteroidsByPlayersCount[this.server.numberOfClients] && 
+	if (asteroids.length <= this.maxAsteroidsByPlayersCount[this.numberOfClients] && 
 		now - this.lastAsteroidSpawnTime >= this.asteroidRespawnTime) {
-		this.server.addActor(Actor.AsteroidActor, {subtype: Math.round(Math.random() * Actor.AsteroidActor.maxSubtype)});
+		this.addActor(Actor.AsteroidActor, {subtype: Math.round(Math.random() * Actor.AsteroidActor.maxSubtype)});
 		this.lastAsteroidSpawnTime = now;
 	}
 }
 
 Game.prototype.checkAsteroidAsteroidCollisions = function () {
-	var asteroidActors = this.server.getActors(Actor.Types.ASTEROID);
+	var asteroidActors = this.getActors(Actor.Types.ASTEROID);
 
 	for (var i = 0, l = asteroidActors.length; i < l; i++) {
 		var a1 = asteroidActors[i];
@@ -112,8 +259,8 @@ Game.prototype.checkAsteroidAsteroidCollisions = function () {
 }
 
 Game.prototype.checkBulletAsteroidCollisions = function () {
-	var bulletActors = this.server.getActors(Actor.Types.BULLET);
-	var asteroidActors = this.server.getActors(Actor.Types.ASTEROID);
+	var bulletActors = this.getActors(Actor.Types.BULLET);
+	var asteroidActors = this.getActors(Actor.Types.ASTEROID);
 
 	if (!asteroidActors.length) {
 		return;
@@ -136,8 +283,8 @@ Game.prototype.checkBulletAsteroidCollisions = function () {
 }
 
 Game.prototype.checkPlayerAsteroidCollisions = function () {
-	var playerActors = this.server.getActors(Actor.Types.PLAYER);
-	var asteroidActors = this.server.getActors(Actor.Types.ASTEROID);
+	var playerActors = this.getActors(Actor.Types.PLAYER);
+	var asteroidActors = this.getActors(Actor.Types.ASTEROID);
 
 	if (!asteroidActors.length) {
 		return;
@@ -160,8 +307,8 @@ Game.prototype.checkPlayerAsteroidCollisions = function () {
 }
 
 Game.prototype.checkPlayerBulletCollisions = function () {
-	var playerActors = this.server.getActors(Actor.Types.PLAYER);
-	var bulletActors = this.server.getActors(Actor.Types.BULLET);
+	var playerActors = this.getActors(Actor.Types.PLAYER);
+	var bulletActors = this.getActors(Actor.Types.BULLET);
 
 	if (!bulletActors.length) {
 		return;
@@ -184,7 +331,7 @@ Game.prototype.checkPlayerBulletCollisions = function () {
 }
 
 Game.prototype.checkPlayerPlayerCollisions = function () {
-	var playerActors = this.server.getActors(Actor.Types.PLAYER);
+	var playerActors = this.getActors(Actor.Types.PLAYER);
 
 	for (var i = 0, length = playerActors.length; i < length; i++) {
 		var a1 = playerActors[i];
@@ -243,8 +390,8 @@ Game.prototype.positionPlayerOnField = function (player) {
 	var startY = player.height / 2.0;
 	var fieldWidth = this.fieldSize.width - (2.0 * player.width);
 	var fieldHeight = this.fieldSize.height - (2.0 * player.height);
-	var allPlayers = this.server.getActors(Actor.Types.PLAYER);
-	var allAsteroids = this.server.getActors(Actor.Types.ASTEROID);
+	var allPlayers = this.getActors(Actor.Types.PLAYER);
+	var allAsteroids = this.getActors(Actor.Types.ASTEROID);
 	var x, y, r;
 
 	do {
@@ -266,8 +413,8 @@ Game.prototype.positionAsteroidOnField = function (asteroid) {
 	var minY = minX;
 	var fieldWidth = this.fieldSize.width + diagonal;
 	var fieldHeight = this.fieldSize.height + diagonal;
-	var allPlayers = this.server.getActors(Actor.Types.PLAYER);
-	var allAsteroids = this.server.getActors(Actor.Types.ASTEROID);
+	var allPlayers = this.getActors(Actor.Types.PLAYER);
+	var allAsteroids = this.getActors(Actor.Types.ASTEROID);
 	var x, y, r;
 
 	do {

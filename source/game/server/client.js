@@ -6,9 +6,9 @@ var WebSocket = require('ws');
 
 var AvailableColors = ['red', 'blue', 'green', 'purple', 'yellow'];
 
-var Client = function (server, connection, clientID) {
+var Client = function (game, connection, clientID) {
 	this.id = clientID;
-	this.server = server;
+	this.game = game;
 	this.conn = connection;
 	this.name = null;
 	this.player = null;
@@ -36,7 +36,7 @@ Client.prototype.update = function () {
 
 	if (!this.player.alive) {
 		if (Date.now() - this.player.timeOfDeath >= this.respawnTime) {
-			this.player = this.server.addActor(Actor.PlayerActor, {client: this, color: this.color});
+			this.player = this.game.addActor(Actor.PlayerActor, {client: this, color: this.color});
 		}
 		return;
 	}
@@ -65,7 +65,7 @@ Client.prototype.update = function () {
 
 			if (now - this.lastBulletShotTime >= this.bulletShootCooldownTime) {
 				this.lastBulletShotTime = now;
-				this.server.addActor(Actor.BulletActor, {owner: this.player});
+				this.game.addActor(Actor.BulletActor, {owner: this.player});
 			}
 		}
 
@@ -94,7 +94,7 @@ Client.prototype.processMessage = function (message) {
 		case Message.NAME:
 			if (!this.name && message.name) {
 				this.name = message.name;
-				this.player = this.server.addActor(Actor.PlayerActor, {client: this, color: this.color});
+				this.player = this.game.addActor(Actor.PlayerActor, {client: this, color: this.color});
 			}
 			break;
 
