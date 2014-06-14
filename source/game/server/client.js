@@ -12,6 +12,7 @@ var Client = function (game, connection, clientID) {
 	this.conn = connection;
 	this.name = null;
 	this.player = null;
+	this.shipType = null;
 
 	var colorIndex = Math.round(Math.random() * (AvailableColors.length - 1));
 	this.color = AvailableColors[colorIndex];
@@ -26,8 +27,10 @@ var Client = function (game, connection, clientID) {
 	this.respawnTime = 4000; // in miliseconds
 
 	this.lastBulletShotTime = 0;
-	this.bulletShootCooldownTime = 200; // in milliseconds
+	this.bulletShootCooldownTime = null;
 }
+
+Client.bulletShootCooldownTimeByShipType = [200, 150]; // in milliseconds
 
 Client.prototype.update = function () {
 	if (!this.player) {
@@ -36,7 +39,7 @@ Client.prototype.update = function () {
 
 	if (!this.player.alive) {
 		if (Date.now() - this.player.timeOfDeath >= this.respawnTime) {
-			this.player = this.game.addActor(Actor.PlayerActor, {client: this, color: this.color});
+			this.player = this.game.addActor(Actor.PlayerActor, {client: this, color: this.color, subtype: this.shipType});
 		}
 		return;
 	}
@@ -91,10 +94,12 @@ Client.prototype.processMessages = function () {
 
 Client.prototype.processMessage = function (message) {
 	switch (message.type) {
-		case Message.NAME:
+		case Message.PLAYER:
 			if (!this.name && message.name) {
 				this.name = message.name;
-				this.player = this.game.addActor(Actor.PlayerActor, {client: this, color: this.color});
+				this.shipType = message.ship;
+				this.bulletShootCooldownTime = Client.bulletShootCooldownTimeByShipType[this.shipType];
+				this.player = this.game.addActor(Actor.PlayerActor, {client: this, color: this.color, subtype: this.shipType});
 			}
 			break;
 
