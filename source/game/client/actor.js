@@ -66,8 +66,9 @@ PlayerActor.prototype = Object.create(Actor);
 PlayerActor.prototype.initiate = function (data) {
 	this.entity.rect.size.width = data.w;
 	this.entity.rect.size.height = data.h;
+	this.subtype = data.st;
 
-	this.entity.sprite = document.imageCache.imageForKey('res/ship_' + data.c + '.png');
+	this.entity.sprite = document.imageCache.imageForKey('res/ship_' + data.st + '_' + data.c + '.png');
 
 	this.update(data, false);
 }
@@ -122,7 +123,7 @@ PlayerActor.prototype.destroy = function () {
 	var profile = new SRA.Entity();
 	profile.rect = new Geometry.Rect(Geometry.Vector2.Zero.clone(), ship.rect.size.clone());
 	profile.backgroundColor = ship.backgroundColor;
-	profile.sprite = document.imageCache.imageForKey('res/ship_white.png');
+	profile.sprite = document.imageCache.imageForKey('res/ship_' + this.subtype + '_white.png');
 	profile.opacity = 0.0;
 	ship.addChild(profile);
 
