@@ -1,6 +1,6 @@
 (function (exports) {
 	exports.INIT = 1;
-	exports.NAME = 2;
+	exports.PLAYER = 2;
 	exports.INPUT = 3;
 
 	exports.GAME_DATA = 16;
@@ -14,8 +14,8 @@
 		return {type: exports.INIT};
 	};
 
-	exports.buildNameMessage = function (name) {
-		return {type: exports.NAME, name: name};
+	exports.buildPlayerMessage = function (name, ship) {
+		return {type: exports.PLAYER, name: name, ship: ship};
 	};
 
 	exports.buildInputMessage = function (data) {
