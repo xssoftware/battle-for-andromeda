@@ -55,7 +55,7 @@ var Server = function (options) {
 			} else if (connection.clientID) {
 				var client = self.clients[connection.clientID];
 
-				if (client.started || message.type === Message.NAME) {
+				if (client.started || message.type === Message.PLAYER) {
 					client.handleMessage(message);
 				}
 			}
