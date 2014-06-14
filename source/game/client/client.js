@@ -69,14 +69,14 @@ Client.prototype.handleConnect = function () {
 
 	var self = this;
 
-	showNameEntryDialogue(function (text) {
+	showNameEntryDialogue(function (text, ship) {
 		hideNameEntryDialogue();
 
 		if (!self.connected) {
 			return;
 		}
 
-		self.sendMessage(Message.buildNameMessage(text));
+		self.sendMessage(Message.buildPlayerMessage(text, ship));
 	});
 }
 
