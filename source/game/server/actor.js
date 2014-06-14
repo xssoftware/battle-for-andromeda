@@ -42,10 +42,20 @@ var PlayerActor = function (id, game, data) {
 	this.client = data.client;
 	this.color = data.color;
 
-	this.width = 44.0;
-	this.height = 23.0;
+	if (data.subtype > PlayerActor.maxSubtype) {
+		data.subtype = PlayerActor.maxSubtype;
+	} else if (data.subtype < PlayerActor.minSubtype) {
+		data.subtype = PlayerActor.minSubtype;
+	}
+
+	this.subtype = data.subtype;
+
+	var size = PlayerActor.sizeBySubtype[this.subtype];
+
+	this.width = size[0];
+	this.height = size[1];
 	this.diagonal = Math.sqrt(this.width * this.width + this.height * this.height);
-	this.polygon = new Geometry.Polygon2(PlayerActor.polygonPoints);
+	this.polygon = new Geometry.Polygon2(PlayerActor.polygonPointsBySubtype[this.subtype]);
 
 	this.game.positionPlayerOnField(this);
 	this.polygon.transform(this.position.x, this.position.y, this.rotation);
@@ -58,12 +68,12 @@ var PlayerActor = function (id, game, data) {
 	this.velocity = Geometry.Vector2.Zero.clone();
 	this.desiredVelocity = Geometry.Vector2.Zero.clone();
 	this.steering = Geometry.Vector2.Zero.clone();
-	this.mass = 30;
+	this.mass = PlayerActor.massBySubtype[this.subtype];
 
 	this.damage = 300;
 
 	this.timeOfDeath = 0;
-	this.health = 250;
+	this.health = PlayerActor.healthBySubtype[this.subtype];
 
 	this.invincibilityStartTime = 0;
 	this.invincibilityDuration = 3000; // in milliseconds
@@ -74,13 +84,31 @@ var PlayerActor = function (id, game, data) {
 
 PlayerActor.prototype = Object.create(Actor);
 
-PlayerActor.polygonPoints = [
-	new Geometry.Vector2(-10.5, -20.0),
-	new Geometry.Vector2(-9.5, -22.0),
-	new Geometry.Vector2(9.5, -3.0),
-	new Geometry.Vector2(9.5, 3.0),
-	new Geometry.Vector2(-9.5, 22.0),
-	new Geometry.Vector2(-10.5, 20.0)
+PlayerActor.minSubtype = 0;
+PlayerActor.maxSubtype = 1;
+
+PlayerActor.massBySubtype = [30, 60];
+
+PlayerActor.healthBySubtype = [250, 300];
+
+PlayerActor.sizeBySubtype = [[44.0, 23.0], [66.0, 35.0]];
+
+PlayerActor.polygonPointsBySubtype = [[
+		new Geometry.Vector2(-10.5, -20.0),
+		new Geometry.Vector2(-9.5, -22.0),
+		new Geometry.Vector2(9.5, -3.0),
+		new Geometry.Vector2(9.5, 3.0),
+		new Geometry.Vector2(-9.5, 22.0),
+		new Geometry.Vector2(-10.5, 20.0)
+	],
+	[
+		new Geometry.Vector2(-16.5, -30.0),
+		new Geometry.Vector2(-15.5, -32.0),
+		new Geometry.Vector2(16.5, -3.0),
+		new Geometry.Vector2(16.5, 3.0),
+		new Geometry.Vector2(-15.5, 32.0),
+		new Geometry.Vector2(-16.5, 30.0)
+	]
 ];
 
 PlayerActor.prototype.toMessage = function (full) {
@@ -88,6 +116,7 @@ PlayerActor.prototype.toMessage = function (full) {
 		return {
 			id: this.id,
 			t: this.type,
+			st: this.subtype,
 			c: this.color,
 			x: this.position.x,
 			y: this.position.y,
