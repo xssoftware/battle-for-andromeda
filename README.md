@@ -14,3 +14,10 @@ https://github.com/jfd/wpilot
 Another good read if you have time is:
 
 http://gameprogrammingpatterns.com/
+
+## Instructions
+
+1. Edit `client/config.js` to point to your server
+2. If needed edit `server/config.js` to change port
+3. Run `server/start.js`
+
